@@ -1,0 +1,79 @@
+extend type Tenant @key(fields: "id") {
+  id: ID! @external
+  annotationNamespaces(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for AnnotationNamespaces returned from the connection.
+    """
+    orderBy: AnnotationNamespaceOrder
+
+    """
+    Filtering options for AnnotationNamespaces returned from the connection.
+    """
+    where: AnnotationNamespaceWhereInput
+  ): AnnotationNamespaceConnection! @goField(forceResolver: true)
+  statusNamespaces(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for StatusNamespaces returned from the connection.
+    """
+    orderBy: StatusNamespaceOrder
+
+    """
+    Filtering options for StatusNamespaces returned from the connection.
+    """
+    where: StatusNamespaceWhereInput
+  ): StatusNamespaceConnection! @goField(forceResolver: true)
+}
+
+extend type AnnotationNamespace {
+  """
+  The tenant of the annotation namespace.
+  """
+  tenant: Tenant! @goField(forceResolver: true)
+}
+
+extend type StatusNamespace {
+  """
+  The tenant of the annotation namespace.
+  """
+  tenant: Tenant! @goField(forceResolver: true)
+}

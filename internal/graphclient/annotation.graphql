@@ -1,0 +1,25 @@
+mutation AnnotationUpdate($input: AnnotationUpdateInput!) {
+  annotationUpdate(input: $input) {
+    annotation {
+      id
+      metadata {
+        id
+        nodeID
+      }
+      namespace {
+        id
+        name
+        private
+      }
+      data
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+mutation AnnotationDelete($input: AnnotationDeleteInput!) {
+  annotationDelete(input: $input) {
+    deletedID
+  }
+}

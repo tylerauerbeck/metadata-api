@@ -1,0 +1,21 @@
+# type Metadata {
+#   annotations(): [Annotation!]!
+#   statuses: [Status!]!
+# }
+
+# interface Metadataable {
+#   id: ID!
+#   metadata: Metadata!
+# }
+
+extend type Query {
+  """
+  Lookup a load balancer by ID.
+  """
+  metadata(
+    """
+    The ID of the node to get metadata for.
+    """
+    nodeID: ID!
+  ): Metadata
+}

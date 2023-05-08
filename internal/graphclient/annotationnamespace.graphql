@@ -1,0 +1,60 @@
+query GetTenantAnnotationNamespaces(
+  $id: ID!
+  $orderBy: AnnotationNamespaceOrder
+) {
+  _entities(representations: { __typename: "Tenant", id: $id }) {
+    ... on Tenant {
+      annotationNamespaces(orderBy: $orderBy) {
+        edges {
+          node {
+            id
+            name
+            private
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation AnnotationNamespaceCreate($input: CreateAnnotationNamespaceInput!) {
+  annotationNamespaceCreate(input: $input) {
+    annotationNamespace {
+      id
+      name
+      private
+      createdAt
+      updatedAt
+      tenant {
+        id
+      }
+    }
+  }
+}
+
+mutation AnnotationNamespaceUpdate(
+  $id: ID!
+  $input: UpdateAnnotationNamespaceInput!
+) {
+  annotationNamespaceUpdate(id: $id, input: $input) {
+    annotationNamespace {
+      id
+      name
+      private
+      createdAt
+      updatedAt
+      tenant {
+        id
+      }
+    }
+  }
+}
+
+mutation AnnotationNamespaceDelete($id: ID!, $force: Boolean! = false) {
+  annotationNamespaceDelete(id: $id, force: $force) {
+    deletedID
+    annotationDeletedCount
+  }
+}

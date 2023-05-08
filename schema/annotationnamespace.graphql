@@ -1,0 +1,67 @@
+extend type Mutation {
+  """
+  Create an annotation namespace.
+  """
+  annotationNamespaceCreate(
+    input: CreateAnnotationNamespaceInput!
+  ): AnnotationNamespaceCreatePayload!
+
+  """
+  Delete an annotation namespace.
+
+  Setting force allowed deleting an annotation namespace even if annotations are using it.
+  WARNING: Annotation data will be lost permenantly!
+  """
+  annotationNamespaceDelete(
+    """
+    The ID of the annotation namespace to be deleted.
+    """
+    id: ID!
+    """
+    Delete the annotation namespace even if annotations are using it. WARNING!! The annotations will also be deleted!
+    """
+    force: Boolean! = false
+  ): AnnotationNamespaceDeletePayload!
+
+  """
+  Update an annotation namespace.
+  """
+  annotationNamespaceUpdate(
+    id: ID!
+    input: UpdateAnnotationNamespaceInput!
+  ): AnnotationNamespaceUpdatePayload!
+}
+
+"""
+Return response from annotationNamespaceCreate
+"""
+type AnnotationNamespaceCreatePayload {
+  """
+  The created annotation namespace.
+  """
+  annotationNamespace: AnnotationNamespace!
+}
+
+"""
+Return response from annotationNamespaceDelete
+"""
+type AnnotationNamespaceDeletePayload {
+  """
+  The ID of the deleted annotation namespace.
+  """
+  deletedID: ID!
+  """
+  The count of annotations deleted
+  """
+  annotationDeletedCount: Int!
+}
+
+"""
+Return response from annotationNamespaceUpdate
+"""
+type AnnotationNamespaceUpdatePayload {
+  """
+  The updated annotation namespace.
+  """
+  annotationNamespace: AnnotationNamespace!
+}

@@ -1,0 +1,64 @@
+extend type Mutation {
+  """
+  Set Annotation data for a node and annotation namespace to the given value.
+
+  annotationUpdate is an Upsert operation and will create the annotation if it doesn't already exists.
+  """
+  annotationUpdate(input: AnnotationUpdateInput!): AnnotationUpdateResponse!
+  """
+  Delete Annotation for a node and annotation namespace.
+  """
+  annotationDelete(input: AnnotationDeleteInput!): AnnotationDeleteResponse!
+}
+
+"""
+Input information to update an annotation.
+"""
+input AnnotationUpdateInput {
+  """
+  The node ID for this annotation.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this annotation.
+  """
+  namespaceID: ID!
+  """
+  The data to save in this annotation.
+  """
+  data: JSON!
+}
+
+"""
+Return response from annotationUpdate
+"""
+type AnnotationUpdateResponse {
+  """
+  The set annotation.
+  """
+  annotation: Annotation!
+}
+
+"""
+Input information to delete an annotation.
+"""
+input AnnotationDeleteInput {
+  """
+  The node ID for this annotation.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this annotation.
+  """
+  namespaceID: ID!
+}
+
+"""
+Return response from annotationDelete
+"""
+type AnnotationDeleteResponse {
+  """
+  The ID of the unset annotation.
+  """
+  deletedID: ID!
+}
