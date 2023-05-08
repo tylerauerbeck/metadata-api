@@ -2,14 +2,12 @@ module go.infratographer.com/metadata-api
 
 go 1.20
 
-replace go.infratographer.com/x => github.com/nicolerenee/x v0.0.0-20230504213710-69127ba3a498
-
 replace github.com/testcontainers/testcontainers-go => github.com/testcontainers/testcontainers-go v0.0.0-20230503220718-0df60de8ccd8
 
 require (
-	entgo.io/contrib v0.4.4
-	entgo.io/ent v0.12.2
-	github.com/99designs/gqlgen v0.17.30
+	entgo.io/contrib v0.4.5
+	entgo.io/ent v0.12.3
+	github.com/99designs/gqlgen v0.17.31
 	github.com/Yamashou/gqlgenc v0.13.5
 	github.com/brianvoe/gofakeit/v6 v6.21.0
 	github.com/docker/go-connections v0.4.0
@@ -25,12 +23,12 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.0.0-20230503220718-0df60de8ccd8
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/wundergraph/graphql-go-tools v1.62.3
-	go.infratographer.com/x v0.0.8
+	go.infratographer.com/x v0.0.11
 	go.uber.org/zap v1.24.0
 )
 
 require (
-	ariga.io/atlas v0.10.0 // indirect
+	ariga.io/atlas v0.10.2-0.20230427182402-87a07dfb83bf // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
@@ -138,7 +136,7 @@ require (
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.8.1-0.20230428195545-5283a0178901 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	google.golang.org/grpc v1.53.0 // indirect

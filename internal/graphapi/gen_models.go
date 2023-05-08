@@ -59,6 +59,67 @@ type AnnotationUpdateResponse struct {
 	Annotation *generated.Annotation `json:"annotation"`
 }
 
+type ResourceProvider struct {
+	ID               gidx.PrefixedID                      `json:"id"`
+	StatusNamespaces *generated.StatusNamespaceConnection `json:"statusNamespaces"`
+}
+
+func (ResourceProvider) IsEntity() {}
+
+// Input information to delete an status.
+type StatusDeleteInput struct {
+	// The node ID for this status.
+	NodeID gidx.PrefixedID `json:"nodeID"`
+	// The namespace ID for this status.
+	NamespaceID gidx.PrefixedID `json:"namespaceID"`
+	// The source for this status.
+	Source string `json:"source"`
+}
+
+// Return response from statusDelete
+type StatusDeleteResponse struct {
+	// The ID of the unset status.
+	DeletedID gidx.PrefixedID `json:"deletedID"`
+}
+
+// Return response from statusNamespaceCreate
+type StatusNamespaceCreatePayload struct {
+	// The created status namespace.
+	StatusNamespace *generated.StatusNamespace `json:"statusNamespace"`
+}
+
+// Return response from statusNamespaceDelete
+type StatusNamespaceDeletePayload struct {
+	// The ID of the deleted status namespace.
+	DeletedID gidx.PrefixedID `json:"deletedID"`
+	// The count of statuss deleted
+	StatusDeletedCount int `json:"statusDeletedCount"`
+}
+
+// Return response from statusNamespaceUpdate
+type StatusNamespaceUpdatePayload struct {
+	// The updated status namespace.
+	StatusNamespace *generated.StatusNamespace `json:"statusNamespace"`
+}
+
+// Input information to update an status.
+type StatusUpdateInput struct {
+	// The node ID for this status.
+	NodeID gidx.PrefixedID `json:"nodeID"`
+	// The namespace ID for this status.
+	NamespaceID gidx.PrefixedID `json:"namespaceID"`
+	// The source for this status.
+	Source string `json:"source"`
+	// The data to save in this status.
+	Data json.RawMessage `json:"data"`
+}
+
+// Return response from statusUpdate
+type StatusUpdateResponse struct {
+	// The set status.
+	Status *generated.Status `json:"status"`
+}
+
 type Tenant struct {
 	ID                   gidx.PrefixedID                          `json:"id"`
 	AnnotationNamespaces *generated.AnnotationNamespaceConnection `json:"annotationNamespaces"`

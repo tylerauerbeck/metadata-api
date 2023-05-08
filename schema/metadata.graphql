@@ -10,7 +10,7 @@
 
 extend type Query {
   """
-  Lookup a load balancer by ID.
+  Lookup a metadata for a node by node ID.
   """
   metadata(
     """

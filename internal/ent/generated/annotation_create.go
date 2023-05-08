@@ -122,7 +122,7 @@ func (ac *AnnotationCreate) Mutation() *AnnotationMutation {
 // Save creates the Annotation in the database.
 func (ac *AnnotationCreate) Save(ctx context.Context) (*Annotation, error) {
 	ac.defaults()
-	return withHooks[*Annotation, AnnotationMutation](ctx, ac.sqlSave, ac.mutation, ac.hooks)
+	return withHooks(ctx, ac.sqlSave, ac.mutation, ac.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

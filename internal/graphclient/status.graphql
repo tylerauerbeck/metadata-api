@@ -1,0 +1,26 @@
+mutation StatusUpdate($input: StatusUpdateInput!) {
+  statusUpdate(input: $input) {
+    status {
+      id
+      metadata {
+        id
+        nodeID
+      }
+      namespace {
+        id
+        name
+        private
+      }
+      source
+      data
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+mutation StatusDelete($input: StatusDeleteInput!) {
+  statusDelete(input: $input) {
+    deletedID
+  }
+}

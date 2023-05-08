@@ -11,6 +11,11 @@ import (
 	ent "go.infratographer.com/metadata-api/internal/ent/generated"
 )
 
+var (
+	tenantPrefix           = "testtnt"
+	resourceProviderPrefix = "testrpr"
+)
+
 type AnnotationNamespaceBuilder struct {
 	Name     string
 	TenantID gidx.PrefixedID
@@ -64,4 +69,52 @@ func (b AnnotationBuilder) MustNew(ctx context.Context) *ent.Annotation {
 	}
 
 	return EntClient.Annotation.Create().SetMetadata(b.Metadata).SetNamespace(b.AnnotationNamespace).SetData(b.Data).SaveX(ctx)
+}
+
+type StatusNamespaceBuilder struct {
+	Name               string
+	ResourceProviderID gidx.PrefixedID
+	Private            bool
+}
+
+func (b StatusNamespaceBuilder) MustNew(ctx context.Context) *ent.StatusNamespace {
+	if b.Name == "" {
+		b.Name = fmt.Sprintf("%s/%s", gofakeit.DomainName(), gofakeit.Fruit())
+	}
+
+	if b.ResourceProviderID == "" {
+		b.ResourceProviderID = gidx.MustNewID(resourceProviderPrefix)
+	}
+
+	return EntClient.StatusNamespace.Create().SetName(b.Name).SetResourceProviderID(b.ResourceProviderID).SetPrivate(b.Private).SaveX(ctx)
+}
+
+type StatusBuilder struct {
+	Metadata        *ent.Metadata
+	StatusNamespace *ent.StatusNamespace
+	Source          string
+	Data            json.RawMessage
+}
+
+func (b StatusBuilder) MustNew(ctx context.Context) *ent.Status {
+	if b.Metadata == nil {
+		b.Metadata = MetadataBuilder{}.MustNew(ctx)
+	}
+
+	if b.StatusNamespace == nil {
+		b.StatusNamespace = StatusNamespaceBuilder{}.MustNew(ctx)
+	}
+
+	if b.Source == "" {
+		b.Source = gofakeit.Adjective()
+	}
+
+	if b.Data == nil {
+		jsonData, err := gofakeit.JSON(nil)
+		errPanic("generating random json", err)
+
+		b.Data = json.RawMessage(jsonData)
+	}
+
+	return EntClient.Status.Create().SetMetadata(b.Metadata).SetNamespace(b.StatusNamespace).SetSource(b.Source).SetData(b.Data).SaveX(ctx)
 }

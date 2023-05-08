@@ -77,11 +77,11 @@ type AnnotationEdge struct {
 }
 
 type AnnotationNamespace struct {
-	// The ID for the load balancer provider.
+	// The ID for the annotation namespace.
 	ID        gidx.PrefixedID `json:"id"`
 	CreatedAt time.Time       `json:"createdAt"`
 	UpdatedAt time.Time       `json:"updatedAt"`
-	// The name of the load balancer provider.
+	// The name of the annotation namespace.
 	Name string `json:"name"`
 	// Flag for if this namespace is private.
 	Private     bool          `json:"private"`
@@ -262,9 +262,9 @@ type AnnotationWhereInput struct {
 
 // Input information to create an annotation namespace.
 type CreateAnnotationNamespaceInput struct {
-	// The name of the load balancer provider.
+	// The name of the annotation namespace.
 	Name string `json:"name"`
-	// The ID for the tenant for this load balancer.
+	// The ID for the tenant for this annotation namespace.
 	TenantID gidx.PrefixedID `json:"tenantID"`
 	// Flag for if this namespace is private.
 	Private *bool `json:"private,omitempty"`
@@ -281,9 +281,9 @@ type CreateStatusInput struct {
 
 // Input information to create a status namespace.
 type CreateStatusNamespaceInput struct {
-	// The name of the load balancer provider.
+	// The name of the status namespace.
 	Name string `json:"name"`
-	// The ID for the tenant for this load balancer.
+	// The ID for the tenant for this status namespace.
 	ResourceProviderID gidx.PrefixedID `json:"resourceProviderID"`
 	// Flag for if this namespace is private.
 	Private *bool `json:"private,omitempty"`
@@ -293,6 +293,7 @@ type Entity0 struct {
 	FindAnnotationByID          Annotation          `json:"findAnnotationByID"`
 	FindAnnotationNamespaceByID AnnotationNamespace `json:"findAnnotationNamespaceByID"`
 	FindMetadataByID            Metadata            `json:"findMetadataByID"`
+	FindResourceProviderByID    ResourceProvider    `json:"findResourceProviderByID"`
 	FindStatusByID              Status              `json:"findStatusByID"`
 	FindStatusNamespaceByID     StatusNamespace     `json:"findStatusNamespaceByID"`
 	FindTenantByID              Tenant              `json:"findTenantByID"`
@@ -396,6 +397,13 @@ type PageInfo struct {
 	EndCursor *string `json:"endCursor,omitempty"`
 }
 
+type ResourceProvider struct {
+	ID               gidx.PrefixedID           `json:"id"`
+	StatusNamespaces StatusNamespaceConnection `json:"statusNamespaces"`
+}
+
+func (ResourceProvider) IsEntity() {}
+
 type Status struct {
 	ID        gidx.PrefixedID `json:"id"`
 	CreatedAt time.Time       `json:"createdAt"`
@@ -427,6 +435,22 @@ type StatusConnection struct {
 	TotalCount int64 `json:"totalCount"`
 }
 
+// Input information to delete an status.
+type StatusDeleteInput struct {
+	// The node ID for this status.
+	NodeID gidx.PrefixedID `json:"nodeID"`
+	// The namespace ID for this status.
+	NamespaceID gidx.PrefixedID `json:"namespaceID"`
+	// The source for this status.
+	Source string `json:"source"`
+}
+
+// Return response from statusDelete
+type StatusDeleteResponse struct {
+	// The ID of the unset status.
+	DeletedID gidx.PrefixedID `json:"deletedID"`
+}
+
 // An edge in a connection.
 type StatusEdge struct {
 	// The item at the end of the edge.
@@ -436,14 +460,16 @@ type StatusEdge struct {
 }
 
 type StatusNamespace struct {
-	// The ID for the load balancer provider.
+	// The ID for the status namespace.
 	ID        gidx.PrefixedID `json:"id"`
 	CreatedAt time.Time       `json:"createdAt"`
 	UpdatedAt time.Time       `json:"updatedAt"`
-	// The name of the load balancer provider.
+	// The name of the status namespace.
 	Name string `json:"name"`
 	// Flag for if this namespace is private.
 	Private bool `json:"private"`
+	// The resource provider of the status namespace.
+	ResourceProvider ResourceProvider `json:"resourceProvider"`
 	// The tenant of the annotation namespace.
 	Tenant Tenant `json:"tenant"`
 }
@@ -465,6 +491,20 @@ type StatusNamespaceConnection struct {
 	TotalCount int64 `json:"totalCount"`
 }
 
+// Return response from statusNamespaceCreate
+type StatusNamespaceCreatePayload struct {
+	// The created status namespace.
+	StatusNamespace StatusNamespace `json:"statusNamespace"`
+}
+
+// Return response from statusNamespaceDelete
+type StatusNamespaceDeletePayload struct {
+	// The ID of the deleted status namespace.
+	DeletedID gidx.PrefixedID `json:"deletedID"`
+	// The count of statuss deleted
+	StatusDeletedCount int64 `json:"statusDeletedCount"`
+}
+
 // An edge in a connection.
 type StatusNamespaceEdge struct {
 	// The item at the end of the edge.
@@ -479,6 +519,12 @@ type StatusNamespaceOrder struct {
 	Direction OrderDirection `json:"direction"`
 	// The field by which to order StatusNamespaces.
 	Field StatusNamespaceOrderField `json:"field"`
+}
+
+// Return response from statusNamespaceUpdate
+type StatusNamespaceUpdatePayload struct {
+	// The updated status namespace.
+	StatusNamespace StatusNamespace `json:"statusNamespace"`
 }
 
 // StatusNamespaceWhereInput is used for filtering StatusNamespace objects.
@@ -536,6 +582,24 @@ type StatusOrder struct {
 	Direction OrderDirection `json:"direction"`
 	// The field by which to order StatusSlice.
 	Field StatusOrderField `json:"field"`
+}
+
+// Input information to update an status.
+type StatusUpdateInput struct {
+	// The node ID for this status.
+	NodeID gidx.PrefixedID `json:"nodeID"`
+	// The namespace ID for this status.
+	NamespaceID gidx.PrefixedID `json:"namespaceID"`
+	// The source for this status.
+	Source string `json:"source"`
+	// The data to save in this status.
+	Data json.RawMessage `json:"data"`
+}
+
+// Return response from statusUpdate
+type StatusUpdateResponse struct {
+	// The set status.
+	Status Status `json:"status"`
 }
 
 // StatusWhereInput is used for filtering Status objects.
@@ -603,7 +667,7 @@ func (Tenant) IsEntity() {}
 
 // Input information to update an annotation namespace.
 type UpdateAnnotationNamespaceInput struct {
-	// The name of the load balancer provider.
+	// The name of the annotation namespace.
 	Name *string `json:"name,omitempty"`
 	// Flag for if this namespace is private.
 	Private *bool `json:"private,omitempty"`
@@ -618,7 +682,7 @@ type UpdateStatusInput struct {
 
 // Input information to update a status namespace.
 type UpdateStatusNamespaceInput struct {
-	// The name of the load balancer provider.
+	// The name of the status namespace.
 	Name *string `json:"name,omitempty"`
 	// Flag for if this namespace is private.
 	Private *bool `json:"private,omitempty"`

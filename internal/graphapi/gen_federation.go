@@ -140,6 +140,26 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 				list[idx[i]] = entity
 				return nil
 			}
+		case "ResourceProvider":
+			resolverName, err := entityResolverNameForResourceProvider(ctx, rep)
+			if err != nil {
+				return fmt.Errorf(`finding resolver for Entity "ResourceProvider": %w`, err)
+			}
+			switch resolverName {
+
+			case "findResourceProviderByID":
+				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
+				if err != nil {
+					return fmt.Errorf(`unmarshalling param 0 for findResourceProviderByID(): %w`, err)
+				}
+				entity, err := ec.resolvers.Entity().FindResourceProviderByID(ctx, id0)
+				if err != nil {
+					return fmt.Errorf(`resolving Entity "ResourceProvider": %w`, err)
+				}
+
+				list[idx[i]] = entity
+				return nil
+			}
 		case "Status":
 			resolverName, err := entityResolverNameForStatus(ctx, rep)
 			if err != nil {
@@ -318,6 +338,23 @@ func entityResolverNameForMetadata(ctx context.Context, rep map[string]interface
 		return "findMetadataByID", nil
 	}
 	return "", fmt.Errorf("%w for Metadata", ErrTypeNotFound)
+}
+
+func entityResolverNameForResourceProvider(ctx context.Context, rep map[string]interface{}) (string, error) {
+	for {
+		var (
+			m   map[string]interface{}
+			val interface{}
+			ok  bool
+		)
+		_ = val
+		m = rep
+		if _, ok = m["id"]; !ok {
+			break
+		}
+		return "findResourceProviderByID", nil
+	}
+	return "", fmt.Errorf("%w for ResourceProvider", ErrTypeNotFound)
 }
 
 func entityResolverNameForStatus(ctx context.Context, rep map[string]interface{}) (string, error) {

@@ -18,7 +18,13 @@ type GraphClient interface {
 	AnnotationNamespaceDelete(ctx context.Context, id gidx.PrefixedID, force bool, httpRequestOptions ...client.HTTPRequestOption) (*AnnotationNamespaceDelete, error)
 	AnnotationNamespaceUpdate(ctx context.Context, id gidx.PrefixedID, input UpdateAnnotationNamespaceInput, httpRequestOptions ...client.HTTPRequestOption) (*AnnotationNamespaceUpdate, error)
 	AnnotationUpdate(ctx context.Context, input AnnotationUpdateInput, httpRequestOptions ...client.HTTPRequestOption) (*AnnotationUpdate, error)
+	GetResourceProviderStatusNamespaces(ctx context.Context, id gidx.PrefixedID, orderBy *StatusNamespaceOrder, httpRequestOptions ...client.HTTPRequestOption) (*GetResourceProviderStatusNamespaces, error)
 	GetTenantAnnotationNamespaces(ctx context.Context, id gidx.PrefixedID, orderBy *AnnotationNamespaceOrder, httpRequestOptions ...client.HTTPRequestOption) (*GetTenantAnnotationNamespaces, error)
+	StatusDelete(ctx context.Context, input StatusDeleteInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusDelete, error)
+	StatusNamespaceCreate(ctx context.Context, input CreateStatusNamespaceInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusNamespaceCreate, error)
+	StatusNamespaceDelete(ctx context.Context, id gidx.PrefixedID, force bool, httpRequestOptions ...client.HTTPRequestOption) (*StatusNamespaceDelete, error)
+	StatusNamespaceUpdate(ctx context.Context, id gidx.PrefixedID, input UpdateStatusNamespaceInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusNamespaceUpdate, error)
+	StatusUpdate(ctx context.Context, input StatusUpdateInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusUpdate, error)
 }
 
 type Client struct {
@@ -40,6 +46,11 @@ type Mutation struct {
 	AnnotationNamespaceCreate AnnotationNamespaceCreatePayload "json:\"annotationNamespaceCreate\" graphql:\"annotationNamespaceCreate\""
 	AnnotationNamespaceDelete AnnotationNamespaceDeletePayload "json:\"annotationNamespaceDelete\" graphql:\"annotationNamespaceDelete\""
 	AnnotationNamespaceUpdate AnnotationNamespaceUpdatePayload "json:\"annotationNamespaceUpdate\" graphql:\"annotationNamespaceUpdate\""
+	StatusUpdate              StatusUpdateResponse             "json:\"statusUpdate\" graphql:\"statusUpdate\""
+	StatusDelete              StatusDeleteResponse             "json:\"statusDelete\" graphql:\"statusDelete\""
+	StatusNamespaceCreate     StatusNamespaceCreatePayload     "json:\"statusNamespaceCreate\" graphql:\"statusNamespaceCreate\""
+	StatusNamespaceDelete     StatusNamespaceDeletePayload     "json:\"statusNamespaceDelete\" graphql:\"statusNamespaceDelete\""
+	StatusNamespaceUpdate     StatusNamespaceUpdatePayload     "json:\"statusNamespaceUpdate\" graphql:\"statusNamespaceUpdate\""
 }
 type AnnotationDelete struct {
 	AnnotationDelete struct {
@@ -99,6 +110,21 @@ type AnnotationUpdate struct {
 		} "json:\"annotation\" graphql:\"annotation\""
 	} "json:\"annotationUpdate\" graphql:\"annotationUpdate\""
 }
+type GetResourceProviderStatusNamespaces struct {
+	Entities []*struct {
+		StatusNamespaces struct {
+			Edges []*struct {
+				Node *struct {
+					ID        gidx.PrefixedID "json:\"id\" graphql:\"id\""
+					Name      string          "json:\"name\" graphql:\"name\""
+					Private   bool            "json:\"private\" graphql:\"private\""
+					CreatedAt time.Time       "json:\"createdAt\" graphql:\"createdAt\""
+					UpdatedAt time.Time       "json:\"updatedAt\" graphql:\"updatedAt\""
+				} "json:\"node\" graphql:\"node\""
+			} "json:\"edges\" graphql:\"edges\""
+		} "json:\"statusNamespaces\" graphql:\"statusNamespaces\""
+	} "json:\"_entities\" graphql:\"_entities\""
+}
 type GetTenantAnnotationNamespaces struct {
 	Entities []*struct {
 		AnnotationNamespaces struct {
@@ -113,6 +139,65 @@ type GetTenantAnnotationNamespaces struct {
 			} "json:\"edges\" graphql:\"edges\""
 		} "json:\"annotationNamespaces\" graphql:\"annotationNamespaces\""
 	} "json:\"_entities\" graphql:\"_entities\""
+}
+type StatusDelete struct {
+	StatusDelete struct {
+		DeletedID gidx.PrefixedID "json:\"deletedID\" graphql:\"deletedID\""
+	} "json:\"statusDelete\" graphql:\"statusDelete\""
+}
+type StatusNamespaceCreate struct {
+	StatusNamespaceCreate struct {
+		StatusNamespace struct {
+			ID               gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			Name             string          "json:\"name\" graphql:\"name\""
+			Private          bool            "json:\"private\" graphql:\"private\""
+			CreatedAt        time.Time       "json:\"createdAt\" graphql:\"createdAt\""
+			UpdatedAt        time.Time       "json:\"updatedAt\" graphql:\"updatedAt\""
+			ResourceProvider struct {
+				ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			} "json:\"resourceProvider\" graphql:\"resourceProvider\""
+		} "json:\"statusNamespace\" graphql:\"statusNamespace\""
+	} "json:\"statusNamespaceCreate\" graphql:\"statusNamespaceCreate\""
+}
+type StatusNamespaceDelete struct {
+	StatusNamespaceDelete struct {
+		DeletedID          gidx.PrefixedID "json:\"deletedID\" graphql:\"deletedID\""
+		StatusDeletedCount int64           "json:\"statusDeletedCount\" graphql:\"statusDeletedCount\""
+	} "json:\"statusNamespaceDelete\" graphql:\"statusNamespaceDelete\""
+}
+type StatusNamespaceUpdate struct {
+	StatusNamespaceUpdate struct {
+		StatusNamespace struct {
+			ID               gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			Name             string          "json:\"name\" graphql:\"name\""
+			Private          bool            "json:\"private\" graphql:\"private\""
+			CreatedAt        time.Time       "json:\"createdAt\" graphql:\"createdAt\""
+			UpdatedAt        time.Time       "json:\"updatedAt\" graphql:\"updatedAt\""
+			ResourceProvider struct {
+				ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			} "json:\"resourceProvider\" graphql:\"resourceProvider\""
+		} "json:\"statusNamespace\" graphql:\"statusNamespace\""
+	} "json:\"statusNamespaceUpdate\" graphql:\"statusNamespaceUpdate\""
+}
+type StatusUpdate struct {
+	StatusUpdate struct {
+		Status struct {
+			ID       gidx.PrefixedID "json:\"id\" graphql:\"id\""
+			Metadata struct {
+				ID     gidx.PrefixedID "json:\"id\" graphql:\"id\""
+				NodeID gidx.PrefixedID "json:\"nodeID\" graphql:\"nodeID\""
+			} "json:\"metadata\" graphql:\"metadata\""
+			Namespace struct {
+				ID      gidx.PrefixedID "json:\"id\" graphql:\"id\""
+				Name    string          "json:\"name\" graphql:\"name\""
+				Private bool            "json:\"private\" graphql:\"private\""
+			} "json:\"namespace\" graphql:\"namespace\""
+			Source    string          "json:\"source\" graphql:\"source\""
+			Data      json.RawMessage "json:\"data\" graphql:\"data\""
+			CreatedAt time.Time       "json:\"createdAt\" graphql:\"createdAt\""
+			UpdatedAt time.Time       "json:\"updatedAt\" graphql:\"updatedAt\""
+		} "json:\"status\" graphql:\"status\""
+	} "json:\"statusUpdate\" graphql:\"statusUpdate\""
 }
 
 const AnnotationDeleteDocument = `mutation AnnotationDelete ($input: AnnotationDeleteInput!) {
@@ -250,6 +335,39 @@ func (c *Client) AnnotationUpdate(ctx context.Context, input AnnotationUpdateInp
 	return &res, nil
 }
 
+const GetResourceProviderStatusNamespacesDocument = `query GetResourceProviderStatusNamespaces ($id: ID!, $orderBy: StatusNamespaceOrder) {
+	_entities(representations: {__typename:"ResourceProvider",id:$id}) {
+		... on ResourceProvider {
+			statusNamespaces(orderBy: $orderBy) {
+				edges {
+					node {
+						id
+						name
+						private
+						createdAt
+						updatedAt
+					}
+				}
+			}
+		}
+	}
+}
+`
+
+func (c *Client) GetResourceProviderStatusNamespaces(ctx context.Context, id gidx.PrefixedID, orderBy *StatusNamespaceOrder, httpRequestOptions ...client.HTTPRequestOption) (*GetResourceProviderStatusNamespaces, error) {
+	vars := map[string]interface{}{
+		"id":      id,
+		"orderBy": orderBy,
+	}
+
+	var res GetResourceProviderStatusNamespaces
+	if err := c.Client.Post(ctx, "GetResourceProviderStatusNamespaces", GetResourceProviderStatusNamespacesDocument, &res, vars, httpRequestOptions...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
 const GetTenantAnnotationNamespacesDocument = `query GetTenantAnnotationNamespaces ($id: ID!, $orderBy: AnnotationNamespaceOrder) {
 	_entities(representations: {__typename:"Tenant",id:$id}) {
 		... on Tenant {
@@ -277,6 +395,142 @@ func (c *Client) GetTenantAnnotationNamespaces(ctx context.Context, id gidx.Pref
 
 	var res GetTenantAnnotationNamespaces
 	if err := c.Client.Post(ctx, "GetTenantAnnotationNamespaces", GetTenantAnnotationNamespacesDocument, &res, vars, httpRequestOptions...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const StatusDeleteDocument = `mutation StatusDelete ($input: StatusDeleteInput!) {
+	statusDelete(input: $input) {
+		deletedID
+	}
+}
+`
+
+func (c *Client) StatusDelete(ctx context.Context, input StatusDeleteInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusDelete, error) {
+	vars := map[string]interface{}{
+		"input": input,
+	}
+
+	var res StatusDelete
+	if err := c.Client.Post(ctx, "StatusDelete", StatusDeleteDocument, &res, vars, httpRequestOptions...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const StatusNamespaceCreateDocument = `mutation StatusNamespaceCreate ($input: CreateStatusNamespaceInput!) {
+	statusNamespaceCreate(input: $input) {
+		statusNamespace {
+			id
+			name
+			private
+			createdAt
+			updatedAt
+			resourceProvider {
+				id
+			}
+		}
+	}
+}
+`
+
+func (c *Client) StatusNamespaceCreate(ctx context.Context, input CreateStatusNamespaceInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusNamespaceCreate, error) {
+	vars := map[string]interface{}{
+		"input": input,
+	}
+
+	var res StatusNamespaceCreate
+	if err := c.Client.Post(ctx, "StatusNamespaceCreate", StatusNamespaceCreateDocument, &res, vars, httpRequestOptions...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const StatusNamespaceDeleteDocument = `mutation StatusNamespaceDelete ($id: ID!, $force: Boolean! = false) {
+	statusNamespaceDelete(id: $id, force: $force) {
+		deletedID
+		statusDeletedCount
+	}
+}
+`
+
+func (c *Client) StatusNamespaceDelete(ctx context.Context, id gidx.PrefixedID, force bool, httpRequestOptions ...client.HTTPRequestOption) (*StatusNamespaceDelete, error) {
+	vars := map[string]interface{}{
+		"id":    id,
+		"force": force,
+	}
+
+	var res StatusNamespaceDelete
+	if err := c.Client.Post(ctx, "StatusNamespaceDelete", StatusNamespaceDeleteDocument, &res, vars, httpRequestOptions...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const StatusNamespaceUpdateDocument = `mutation StatusNamespaceUpdate ($id: ID!, $input: UpdateStatusNamespaceInput!) {
+	statusNamespaceUpdate(id: $id, input: $input) {
+		statusNamespace {
+			id
+			name
+			private
+			createdAt
+			updatedAt
+			resourceProvider {
+				id
+			}
+		}
+	}
+}
+`
+
+func (c *Client) StatusNamespaceUpdate(ctx context.Context, id gidx.PrefixedID, input UpdateStatusNamespaceInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusNamespaceUpdate, error) {
+	vars := map[string]interface{}{
+		"id":    id,
+		"input": input,
+	}
+
+	var res StatusNamespaceUpdate
+	if err := c.Client.Post(ctx, "StatusNamespaceUpdate", StatusNamespaceUpdateDocument, &res, vars, httpRequestOptions...); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+const StatusUpdateDocument = `mutation StatusUpdate ($input: StatusUpdateInput!) {
+	statusUpdate(input: $input) {
+		status {
+			id
+			metadata {
+				id
+				nodeID
+			}
+			namespace {
+				id
+				name
+				private
+			}
+			source
+			data
+			createdAt
+			updatedAt
+		}
+	}
+}
+`
+
+func (c *Client) StatusUpdate(ctx context.Context, input StatusUpdateInput, httpRequestOptions ...client.HTTPRequestOption) (*StatusUpdate, error) {
+	vars := map[string]interface{}{
+		"input": input,
+	}
+
+	var res StatusUpdate
+	if err := c.Client.Post(ctx, "StatusUpdate", StatusUpdateDocument, &res, vars, httpRequestOptions...); err != nil {
 		return nil, err
 	}
 

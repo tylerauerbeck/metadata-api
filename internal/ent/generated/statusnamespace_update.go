@@ -107,7 +107,7 @@ func (snu *StatusNamespaceUpdate) RemoveStatuses(s ...*Status) *StatusNamespaceU
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (snu *StatusNamespaceUpdate) Save(ctx context.Context) (int, error) {
 	snu.defaults()
-	return withHooks[int, StatusNamespaceMutation](ctx, snu.sqlSave, snu.mutation, snu.hooks)
+	return withHooks(ctx, snu.sqlSave, snu.mutation, snu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -313,7 +313,7 @@ func (snuo *StatusNamespaceUpdateOne) Select(field string, fields ...string) *St
 // Save executes the query and returns the updated StatusNamespace entity.
 func (snuo *StatusNamespaceUpdateOne) Save(ctx context.Context) (*StatusNamespace, error) {
 	snuo.defaults()
-	return withHooks[*StatusNamespace, StatusNamespaceMutation](ctx, snuo.sqlSave, snuo.mutation, snuo.hooks)
+	return withHooks(ctx, snuo.sqlSave, snuo.mutation, snuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

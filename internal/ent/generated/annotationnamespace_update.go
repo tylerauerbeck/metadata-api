@@ -107,7 +107,7 @@ func (anu *AnnotationNamespaceUpdate) RemoveAnnotations(a ...*Annotation) *Annot
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (anu *AnnotationNamespaceUpdate) Save(ctx context.Context) (int, error) {
 	anu.defaults()
-	return withHooks[int, AnnotationNamespaceMutation](ctx, anu.sqlSave, anu.mutation, anu.hooks)
+	return withHooks(ctx, anu.sqlSave, anu.mutation, anu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -313,7 +313,7 @@ func (anuo *AnnotationNamespaceUpdateOne) Select(field string, fields ...string)
 // Save executes the query and returns the updated AnnotationNamespace entity.
 func (anuo *AnnotationNamespaceUpdateOne) Save(ctx context.Context) (*AnnotationNamespace, error) {
 	anuo.defaults()
-	return withHooks[*AnnotationNamespace, AnnotationNamespaceMutation](ctx, anuo.sqlSave, anuo.mutation, anuo.hooks)
+	return withHooks(ctx, anuo.sqlSave, anuo.mutation, anuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

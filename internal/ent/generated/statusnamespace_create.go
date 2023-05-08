@@ -127,7 +127,7 @@ func (snc *StatusNamespaceCreate) Mutation() *StatusNamespaceMutation {
 // Save creates the StatusNamespace in the database.
 func (snc *StatusNamespaceCreate) Save(ctx context.Context) (*StatusNamespace, error) {
 	snc.defaults()
-	return withHooks[*StatusNamespace, StatusNamespaceMutation](ctx, snc.sqlSave, snc.mutation, snc.hooks)
+	return withHooks(ctx, snc.sqlSave, snc.mutation, snc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

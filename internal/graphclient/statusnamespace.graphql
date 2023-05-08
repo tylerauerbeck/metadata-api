@@ -1,0 +1,57 @@
+query GetResourceProviderStatusNamespaces(
+  $id: ID!
+  $orderBy: StatusNamespaceOrder
+) {
+  _entities(representations: { __typename: "ResourceProvider", id: $id }) {
+    ... on ResourceProvider {
+      statusNamespaces(orderBy: $orderBy) {
+        edges {
+          node {
+            id
+            name
+            private
+            createdAt
+            updatedAt
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation StatusNamespaceCreate($input: CreateStatusNamespaceInput!) {
+  statusNamespaceCreate(input: $input) {
+    statusNamespace {
+      id
+      name
+      private
+      createdAt
+      updatedAt
+      resourceProvider {
+        id
+      }
+    }
+  }
+}
+
+mutation StatusNamespaceUpdate($id: ID!, $input: UpdateStatusNamespaceInput!) {
+  statusNamespaceUpdate(id: $id, input: $input) {
+    statusNamespace {
+      id
+      name
+      private
+      createdAt
+      updatedAt
+      resourceProvider {
+        id
+      }
+    }
+  }
+}
+
+mutation StatusNamespaceDelete($id: ID!, $force: Boolean! = false) {
+  statusNamespaceDelete(id: $id, force: $force) {
+    deletedID
+    statusDeletedCount
+  }
+}

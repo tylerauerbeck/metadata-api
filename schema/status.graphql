@@ -1,0 +1,72 @@
+extend type Mutation {
+  """
+  Set Status data for a node and status namespace to the given value.
+
+  statusUpdate is an Upsert operation and will create the status if it doesn't already exists.
+  """
+  statusUpdate(input: StatusUpdateInput!): StatusUpdateResponse!
+  """
+  Delete Status for a node and status namespace.
+  """
+  statusDelete(input: StatusDeleteInput!): StatusDeleteResponse!
+}
+
+"""
+Input information to update an status.
+"""
+input StatusUpdateInput {
+  """
+  The node ID for this status.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this status.
+  """
+  namespaceID: ID!
+  """
+  The source for this status.
+  """
+  source: String!
+  """
+  The data to save in this status.
+  """
+  data: JSON!
+}
+
+"""
+Return response from statusUpdate
+"""
+type StatusUpdateResponse {
+  """
+  The set status.
+  """
+  status: Status!
+}
+
+"""
+Input information to delete an status.
+"""
+input StatusDeleteInput {
+  """
+  The node ID for this status.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this status.
+  """
+  namespaceID: ID!
+  """
+  The source for this status.
+  """
+  source: String!
+}
+
+"""
+Return response from statusDelete
+"""
+type StatusDeleteResponse {
+  """
+  The ID of the unset status.
+  """
+  deletedID: ID!
+}

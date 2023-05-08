@@ -14,9 +14,9 @@ PID_FILE=/tmp/${APP_NAME}.pid
 help: Makefile ## Print help
 	@grep -h "##" $(MAKEFILE_LIST) | grep -v grep | sed -e 's/:.*##/#/' | column -c 2 -t -s#
 
-tests: | unit-tests
+test: | unit-test
 
-unit-tests: ## Runs unit tests
+unit-test: ## Runs unit tests
 	@echo --- Running unit tests...
 	@date --rfc-3339=seconds
 	@go test -race -cover -failfast -tags testtools -p 1 -v ./...

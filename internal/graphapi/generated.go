@@ -46,6 +46,7 @@ type ResolverRoot interface {
 	Entity() EntityResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	ResourceProvider() ResourceProviderResolver
 	StatusNamespace() StatusNamespaceResolver
 	Tenant() TenantResolver
 }
@@ -121,6 +122,7 @@ type ComplexityRoot struct {
 		FindAnnotationByID          func(childComplexity int, id gidx.PrefixedID) int
 		FindAnnotationNamespaceByID func(childComplexity int, id gidx.PrefixedID) int
 		FindMetadataByID            func(childComplexity int, id gidx.PrefixedID) int
+		FindResourceProviderByID    func(childComplexity int, id gidx.PrefixedID) int
 		FindStatusByID              func(childComplexity int, id gidx.PrefixedID) int
 		FindStatusNamespaceByID     func(childComplexity int, id gidx.PrefixedID) int
 		FindTenantByID              func(childComplexity int, id gidx.PrefixedID) int
@@ -152,6 +154,11 @@ type ComplexityRoot struct {
 		AnnotationNamespaceDelete func(childComplexity int, id gidx.PrefixedID, force bool) int
 		AnnotationNamespaceUpdate func(childComplexity int, id gidx.PrefixedID, input generated.UpdateAnnotationNamespaceInput) int
 		AnnotationUpdate          func(childComplexity int, input AnnotationUpdateInput) int
+		StatusDelete              func(childComplexity int, input StatusDeleteInput) int
+		StatusNamespaceCreate     func(childComplexity int, input generated.CreateStatusNamespaceInput) int
+		StatusNamespaceDelete     func(childComplexity int, id gidx.PrefixedID, force bool) int
+		StatusNamespaceUpdate     func(childComplexity int, id gidx.PrefixedID, input generated.UpdateStatusNamespaceInput) int
+		StatusUpdate              func(childComplexity int, input StatusUpdateInput) int
 	}
 
 	PageInfo struct {
@@ -165,6 +172,11 @@ type ComplexityRoot struct {
 		Metadata           func(childComplexity int, nodeID gidx.PrefixedID) int
 		__resolve__service func(childComplexity int) int
 		__resolve_entities func(childComplexity int, representations []map[string]interface{}) int
+	}
+
+	ResourceProvider struct {
+		ID               func(childComplexity int) int
+		StatusNamespaces func(childComplexity int, after *entgql.Cursor[gidx.PrefixedID], first *int, before *entgql.Cursor[gidx.PrefixedID], last *int, orderBy *generated.StatusNamespaceOrder, where *generated.StatusNamespaceWhereInput) int
 	}
 
 	Status struct {
@@ -185,18 +197,23 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	StatusDeleteResponse struct {
+		DeletedID func(childComplexity int) int
+	}
+
 	StatusEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
 	}
 
 	StatusNamespace struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		Private   func(childComplexity int) int
-		Tenant    func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Name             func(childComplexity int) int
+		Private          func(childComplexity int) int
+		ResourceProvider func(childComplexity int) int
+		Tenant           func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
 	}
 
 	StatusNamespaceConnection struct {
@@ -205,9 +222,26 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	StatusNamespaceCreatePayload struct {
+		StatusNamespace func(childComplexity int) int
+	}
+
+	StatusNamespaceDeletePayload struct {
+		DeletedID          func(childComplexity int) int
+		StatusDeletedCount func(childComplexity int) int
+	}
+
 	StatusNamespaceEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	StatusNamespaceUpdatePayload struct {
+		StatusNamespace func(childComplexity int) int
+	}
+
+	StatusUpdateResponse struct {
+		Status func(childComplexity int) int
 	}
 
 	Tenant struct {
@@ -228,6 +262,7 @@ type EntityResolver interface {
 	FindAnnotationByID(ctx context.Context, id gidx.PrefixedID) (*generated.Annotation, error)
 	FindAnnotationNamespaceByID(ctx context.Context, id gidx.PrefixedID) (*generated.AnnotationNamespace, error)
 	FindMetadataByID(ctx context.Context, id gidx.PrefixedID) (*generated.Metadata, error)
+	FindResourceProviderByID(ctx context.Context, id gidx.PrefixedID) (*ResourceProvider, error)
 	FindStatusByID(ctx context.Context, id gidx.PrefixedID) (*generated.Status, error)
 	FindStatusNamespaceByID(ctx context.Context, id gidx.PrefixedID) (*generated.StatusNamespace, error)
 	FindTenantByID(ctx context.Context, id gidx.PrefixedID) (*Tenant, error)
@@ -238,11 +273,20 @@ type MutationResolver interface {
 	AnnotationNamespaceCreate(ctx context.Context, input generated.CreateAnnotationNamespaceInput) (*AnnotationNamespaceCreatePayload, error)
 	AnnotationNamespaceDelete(ctx context.Context, id gidx.PrefixedID, force bool) (*AnnotationNamespaceDeletePayload, error)
 	AnnotationNamespaceUpdate(ctx context.Context, id gidx.PrefixedID, input generated.UpdateAnnotationNamespaceInput) (*AnnotationNamespaceUpdatePayload, error)
+	StatusUpdate(ctx context.Context, input StatusUpdateInput) (*StatusUpdateResponse, error)
+	StatusDelete(ctx context.Context, input StatusDeleteInput) (*StatusDeleteResponse, error)
+	StatusNamespaceCreate(ctx context.Context, input generated.CreateStatusNamespaceInput) (*StatusNamespaceCreatePayload, error)
+	StatusNamespaceDelete(ctx context.Context, id gidx.PrefixedID, force bool) (*StatusNamespaceDeletePayload, error)
+	StatusNamespaceUpdate(ctx context.Context, id gidx.PrefixedID, input generated.UpdateStatusNamespaceInput) (*StatusNamespaceUpdatePayload, error)
 }
 type QueryResolver interface {
 	Metadata(ctx context.Context, nodeID gidx.PrefixedID) (*generated.Metadata, error)
 }
+type ResourceProviderResolver interface {
+	StatusNamespaces(ctx context.Context, obj *ResourceProvider, after *entgql.Cursor[gidx.PrefixedID], first *int, before *entgql.Cursor[gidx.PrefixedID], last *int, orderBy *generated.StatusNamespaceOrder, where *generated.StatusNamespaceWhereInput) (*generated.StatusNamespaceConnection, error)
+}
 type StatusNamespaceResolver interface {
+	ResourceProvider(ctx context.Context, obj *generated.StatusNamespace) (*ResourceProvider, error)
 	Tenant(ctx context.Context, obj *generated.StatusNamespace) (*Tenant, error)
 }
 type TenantResolver interface {
@@ -511,6 +555,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Entity.FindMetadataByID(childComplexity, args["id"].(gidx.PrefixedID)), true
 
+	case "Entity.findResourceProviderByID":
+		if e.complexity.Entity.FindResourceProviderByID == nil {
+			break
+		}
+
+		args, err := ec.field_Entity_findResourceProviderByID_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Entity.FindResourceProviderByID(childComplexity, args["id"].(gidx.PrefixedID)), true
+
 	case "Entity.findStatusByID":
 		if e.complexity.Entity.FindStatusByID == nil {
 			break
@@ -684,6 +740,66 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AnnotationUpdate(childComplexity, args["input"].(AnnotationUpdateInput)), true
 
+	case "Mutation.statusDelete":
+		if e.complexity.Mutation.StatusDelete == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_statusDelete_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StatusDelete(childComplexity, args["input"].(StatusDeleteInput)), true
+
+	case "Mutation.statusNamespaceCreate":
+		if e.complexity.Mutation.StatusNamespaceCreate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_statusNamespaceCreate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StatusNamespaceCreate(childComplexity, args["input"].(generated.CreateStatusNamespaceInput)), true
+
+	case "Mutation.statusNamespaceDelete":
+		if e.complexity.Mutation.StatusNamespaceDelete == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_statusNamespaceDelete_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StatusNamespaceDelete(childComplexity, args["id"].(gidx.PrefixedID), args["force"].(bool)), true
+
+	case "Mutation.statusNamespaceUpdate":
+		if e.complexity.Mutation.StatusNamespaceUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_statusNamespaceUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StatusNamespaceUpdate(childComplexity, args["id"].(gidx.PrefixedID), args["input"].(generated.UpdateStatusNamespaceInput)), true
+
+	case "Mutation.statusUpdate":
+		if e.complexity.Mutation.StatusUpdate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_statusUpdate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.StatusUpdate(childComplexity, args["input"].(StatusUpdateInput)), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -742,6 +858,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.__resolve_entities(childComplexity, args["representations"].([]map[string]interface{})), true
+
+	case "ResourceProvider.id":
+		if e.complexity.ResourceProvider.ID == nil {
+			break
+		}
+
+		return e.complexity.ResourceProvider.ID(childComplexity), true
+
+	case "ResourceProvider.statusNamespaces":
+		if e.complexity.ResourceProvider.StatusNamespaces == nil {
+			break
+		}
+
+		args, err := ec.field_ResourceProvider_statusNamespaces_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.ResourceProvider.StatusNamespaces(childComplexity, args["after"].(*entgql.Cursor[gidx.PrefixedID]), args["first"].(*int), args["before"].(*entgql.Cursor[gidx.PrefixedID]), args["last"].(*int), args["orderBy"].(*generated.StatusNamespaceOrder), args["where"].(*generated.StatusNamespaceWhereInput)), true
 
 	case "Status.createdAt":
 		if e.complexity.Status.CreatedAt == nil {
@@ -827,6 +962,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StatusConnection.TotalCount(childComplexity), true
 
+	case "StatusDeleteResponse.deletedID":
+		if e.complexity.StatusDeleteResponse.DeletedID == nil {
+			break
+		}
+
+		return e.complexity.StatusDeleteResponse.DeletedID(childComplexity), true
+
 	case "StatusEdge.cursor":
 		if e.complexity.StatusEdge.Cursor == nil {
 			break
@@ -869,6 +1011,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StatusNamespace.Private(childComplexity), true
 
+	case "StatusNamespace.resourceProvider":
+		if e.complexity.StatusNamespace.ResourceProvider == nil {
+			break
+		}
+
+		return e.complexity.StatusNamespace.ResourceProvider(childComplexity), true
+
 	case "StatusNamespace.tenant":
 		if e.complexity.StatusNamespace.Tenant == nil {
 			break
@@ -904,6 +1053,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StatusNamespaceConnection.TotalCount(childComplexity), true
 
+	case "StatusNamespaceCreatePayload.statusNamespace":
+		if e.complexity.StatusNamespaceCreatePayload.StatusNamespace == nil {
+			break
+		}
+
+		return e.complexity.StatusNamespaceCreatePayload.StatusNamespace(childComplexity), true
+
+	case "StatusNamespaceDeletePayload.deletedID":
+		if e.complexity.StatusNamespaceDeletePayload.DeletedID == nil {
+			break
+		}
+
+		return e.complexity.StatusNamespaceDeletePayload.DeletedID(childComplexity), true
+
+	case "StatusNamespaceDeletePayload.statusDeletedCount":
+		if e.complexity.StatusNamespaceDeletePayload.StatusDeletedCount == nil {
+			break
+		}
+
+		return e.complexity.StatusNamespaceDeletePayload.StatusDeletedCount(childComplexity), true
+
 	case "StatusNamespaceEdge.cursor":
 		if e.complexity.StatusNamespaceEdge.Cursor == nil {
 			break
@@ -917,6 +1087,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StatusNamespaceEdge.Node(childComplexity), true
+
+	case "StatusNamespaceUpdatePayload.statusNamespace":
+		if e.complexity.StatusNamespaceUpdatePayload.StatusNamespace == nil {
+			break
+		}
+
+		return e.complexity.StatusNamespaceUpdatePayload.StatusNamespace(childComplexity), true
+
+	case "StatusUpdateResponse.status":
+		if e.complexity.StatusUpdateResponse.Status == nil {
+			break
+		}
+
+		return e.complexity.StatusUpdateResponse.Status(childComplexity), true
 
 	case "Tenant.annotationNamespaces":
 		if e.complexity.Tenant.AnnotationNamespaces == nil {
@@ -975,9 +1159,11 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateStatusNamespaceInput,
 		ec.unmarshalInputMetadataOrder,
 		ec.unmarshalInputMetadataWhereInput,
+		ec.unmarshalInputStatusDeleteInput,
 		ec.unmarshalInputStatusNamespaceOrder,
 		ec.unmarshalInputStatusNamespaceWhereInput,
 		ec.unmarshalInputStatusOrder,
+		ec.unmarshalInputStatusUpdateInput,
 		ec.unmarshalInputStatusWhereInput,
 		ec.unmarshalInputUpdateAnnotationNamespaceInput,
 		ec.unmarshalInputUpdateStatusInput,
@@ -1206,11 +1392,11 @@ type AnnotationEdge {
   cursor: Cursor!
 }
 type AnnotationNamespace implements Node @key(fields: "id") {
-  """The ID for the load balancer provider."""
+  """The ID for the annotation namespace."""
   id: ID!
   createdAt: Time!
   updatedAt: Time!
-  """The name of the load balancer provider."""
+  """The name of the annotation namespace."""
   name: String!
   """Flag for if this namespace is private."""
   private: Boolean!
@@ -1357,9 +1543,9 @@ input AnnotationWhereInput {
 }
 """Input information to create an annotation namespace."""
 input CreateAnnotationNamespaceInput {
-  """The name of the load balancer provider."""
+  """The name of the annotation namespace."""
   name: String!
-  """The ID for the tenant for this load balancer."""
+  """The ID for the tenant for this annotation namespace."""
   tenantID: ID!
   """Flag for if this namespace is private."""
   private: Boolean
@@ -1374,9 +1560,9 @@ input CreateStatusInput {
 }
 """Input information to create a status namespace."""
 input CreateStatusNamespaceInput {
-  """The name of the load balancer provider."""
+  """The name of the status namespace."""
   name: String!
-  """The ID for the tenant for this load balancer."""
+  """The ID for the tenant for this status namespace."""
   resourceProviderID: ID!
   """Flag for if this namespace is private."""
   private: Boolean
@@ -1528,11 +1714,11 @@ type StatusEdge {
   cursor: Cursor!
 }
 type StatusNamespace implements Node @key(fields: "id") {
-  """The ID for the load balancer provider."""
+  """The ID for the status namespace."""
   id: ID!
   createdAt: Time!
   updatedAt: Time!
-  """The name of the load balancer provider."""
+  """The name of the status namespace."""
   name: String!
   """Flag for if this namespace is private."""
   private: Boolean!
@@ -1691,7 +1877,7 @@ input StatusWhereInput {
 scalar Time
 """Input information to update an annotation namespace."""
 input UpdateAnnotationNamespaceInput {
-  """The name of the load balancer provider."""
+  """The name of the annotation namespace."""
   name: String
   """Flag for if this namespace is private."""
   private: Boolean
@@ -1704,7 +1890,7 @@ input UpdateStatusInput {
 }
 """Input information to update a status namespace."""
 input UpdateStatusNamespaceInput {
-  """The name of the load balancer provider."""
+  """The name of the status namespace."""
   name: String
   """Flag for if this namespace is private."""
   private: Boolean
@@ -1722,7 +1908,7 @@ input UpdateStatusNamespaceInput {
 
 extend type Query {
   """
-  Lookup a load balancer by ID.
+  Lookup a metadata for a node by node ID.
   """
   metadata(
     """
@@ -1730,6 +1916,189 @@ extend type Query {
     """
     nodeID: ID!
   ): Metadata
+}
+`, BuiltIn: false},
+	{Name: "../../schema/resourceprovider.graphql", Input: `extend type ResourceProvider @key(fields: "id") {
+  id: ID! @external
+  statusNamespaces(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for StatusNamespaces returned from the connection.
+    """
+    orderBy: StatusNamespaceOrder
+
+    """
+    Filtering options for StatusNamespaces returned from the connection.
+    """
+    where: StatusNamespaceWhereInput
+  ): StatusNamespaceConnection! @goField(forceResolver: true)
+}
+
+extend type StatusNamespace {
+  """
+  The resource provider of the status namespace.
+  """
+  resourceProvider: ResourceProvider! @goField(forceResolver: true)
+}
+`, BuiltIn: false},
+	{Name: "../../schema/status.graphql", Input: `extend type Mutation {
+  """
+  Set Status data for a node and status namespace to the given value.
+
+  statusUpdate is an Upsert operation and will create the status if it doesn't already exists.
+  """
+  statusUpdate(input: StatusUpdateInput!): StatusUpdateResponse!
+  """
+  Delete Status for a node and status namespace.
+  """
+  statusDelete(input: StatusDeleteInput!): StatusDeleteResponse!
+}
+
+"""
+Input information to update an status.
+"""
+input StatusUpdateInput {
+  """
+  The node ID for this status.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this status.
+  """
+  namespaceID: ID!
+  """
+  The source for this status.
+  """
+  source: String!
+  """
+  The data to save in this status.
+  """
+  data: JSON!
+}
+
+"""
+Return response from statusUpdate
+"""
+type StatusUpdateResponse {
+  """
+  The set status.
+  """
+  status: Status!
+}
+
+"""
+Input information to delete an status.
+"""
+input StatusDeleteInput {
+  """
+  The node ID for this status.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this status.
+  """
+  namespaceID: ID!
+  """
+  The source for this status.
+  """
+  source: String!
+}
+
+"""
+Return response from statusDelete
+"""
+type StatusDeleteResponse {
+  """
+  The ID of the unset status.
+  """
+  deletedID: ID!
+}
+`, BuiltIn: false},
+	{Name: "../../schema/statusnamespace.graphql", Input: `extend type Mutation {
+  """
+  Create an status namespace.
+  """
+  statusNamespaceCreate(
+    input: CreateStatusNamespaceInput!
+  ): StatusNamespaceCreatePayload!
+
+  """
+  Delete an status namespace.
+
+  Setting force allowed deleting an status namespace even if statuss are using it.
+  WARNING: Status data will be lost permenantly!
+  """
+  statusNamespaceDelete(
+    """
+    The ID of the status namespace to be deleted.
+    """
+    id: ID!
+    """
+    Delete the status namespace even if statuss are using it. WARNING!! The statuss will also be deleted!
+    """
+    force: Boolean! = false
+  ): StatusNamespaceDeletePayload!
+
+  """
+  Update an status namespace.
+  """
+  statusNamespaceUpdate(
+    id: ID!
+    input: UpdateStatusNamespaceInput!
+  ): StatusNamespaceUpdatePayload!
+}
+
+"""
+Return response from statusNamespaceCreate
+"""
+type StatusNamespaceCreatePayload {
+  """
+  The created status namespace.
+  """
+  statusNamespace: StatusNamespace!
+}
+
+"""
+Return response from statusNamespaceDelete
+"""
+type StatusNamespaceDeletePayload {
+  """
+  The ID of the deleted status namespace.
+  """
+  deletedID: ID!
+  """
+  The count of statuss deleted
+  """
+  statusDeletedCount: Int!
+}
+
+"""
+Return response from statusNamespaceUpdate
+"""
+type StatusNamespaceUpdatePayload {
+  """
+  The updated status namespace.
+  """
+  statusNamespace: StatusNamespace!
 }
 `, BuiltIn: false},
 	{Name: "../../schema/tenant.graphql", Input: `extend type Tenant @key(fields: "id") {
@@ -1829,13 +2198,14 @@ extend type StatusNamespace {
 `, BuiltIn: true},
 	{Name: "../../federation/entity.graphql", Input: `
 # a union of all types that use the @key directive
-union _Entity = Annotation | AnnotationNamespace | Metadata | Status | StatusNamespace | Tenant
+union _Entity = Annotation | AnnotationNamespace | Metadata | ResourceProvider | Status | StatusNamespace | Tenant
 
 # fake type to build resolver interfaces for users to implement
 type Entity {
 		findAnnotationByID(id: ID!,): Annotation!
 	findAnnotationNamespaceByID(id: ID!,): AnnotationNamespace!
 	findMetadataByID(id: ID!,): Metadata!
+	findResourceProviderByID(id: ID!,): ResourceProvider!
 	findStatusByID(id: ID!,): Status!
 	findStatusNamespaceByID(id: ID!,): StatusNamespace!
 	findTenantByID(id: ID!,): Tenant!
@@ -1889,6 +2259,21 @@ func (ec *executionContext) field_Entity_findAnnotationNamespaceByID_args(ctx co
 }
 
 func (ec *executionContext) field_Entity_findMetadataByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 gidx.PrefixedID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Entity_findResourceProviderByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 gidx.PrefixedID
@@ -2041,6 +2426,99 @@ func (ec *executionContext) field_Mutation_annotationUpdate_args(ctx context.Con
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_statusDelete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 StatusDeleteInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStatusDeleteInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusDeleteInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_statusNamespaceCreate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 generated.CreateStatusNamespaceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateStatusNamespaceInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐCreateStatusNamespaceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_statusNamespaceDelete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 gidx.PrefixedID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["force"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("force"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["force"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_statusNamespaceUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 gidx.PrefixedID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 generated.UpdateStatusNamespaceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateStatusNamespaceInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐUpdateStatusNamespaceInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_statusUpdate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 StatusUpdateInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNStatusUpdateInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusUpdateInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2083,6 +2561,66 @@ func (ec *executionContext) field_Query_metadata_args(ctx context.Context, rawAr
 		}
 	}
 	args["nodeID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_ResourceProvider_statusNamespaces_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *entgql.Cursor[gidx.PrefixedID]
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg0, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg1
+	var arg2 *entgql.Cursor[gidx.PrefixedID]
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *generated.StatusNamespaceOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderBy"))
+		arg4, err = ec.unmarshalOStatusNamespaceOrder2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["orderBy"] = arg4
+	var arg5 *generated.StatusNamespaceWhereInput
+	if tmp, ok := rawArgs["where"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("where"))
+		arg5, err = ec.unmarshalOStatusNamespaceWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -3926,6 +4464,67 @@ func (ec *executionContext) fieldContext_Entity_findMetadataByID(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Entity_findResourceProviderByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Entity_findResourceProviderByID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Entity().FindResourceProviderByID(rctx, fc.Args["id"].(gidx.PrefixedID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ResourceProvider)
+	fc.Result = res
+	return ec.marshalNResourceProvider2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐResourceProvider(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Entity_findResourceProviderByID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Entity",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ResourceProvider_id(ctx, field)
+			case "statusNamespaces":
+				return ec.fieldContext_ResourceProvider_statusNamespaces(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ResourceProvider", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Entity_findResourceProviderByID_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Entity_findStatusByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Entity_findStatusByID(ctx, field)
 	if err != nil {
@@ -4050,6 +4649,8 @@ func (ec *executionContext) fieldContext_Entity_findStatusNamespaceByID(ctx cont
 				return ec.fieldContext_StatusNamespace_name(ctx, field)
 			case "private":
 				return ec.fieldContext_StatusNamespace_private(ctx, field)
+			case "resourceProvider":
+				return ec.fieldContext_StatusNamespace_resourceProvider(ctx, field)
 			case "tenant":
 				return ec.fieldContext_StatusNamespace_tenant(ctx, field)
 			}
@@ -4968,6 +5569,303 @@ func (ec *executionContext) fieldContext_Mutation_annotationNamespaceUpdate(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_statusUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_statusUpdate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().StatusUpdate(rctx, fc.Args["input"].(StatusUpdateInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StatusUpdateResponse)
+	fc.Result = res
+	return ec.marshalNStatusUpdateResponse2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusUpdateResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_statusUpdate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "status":
+				return ec.fieldContext_StatusUpdateResponse_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusUpdateResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_statusUpdate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_statusDelete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_statusDelete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().StatusDelete(rctx, fc.Args["input"].(StatusDeleteInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StatusDeleteResponse)
+	fc.Result = res
+	return ec.marshalNStatusDeleteResponse2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusDeleteResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_statusDelete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "deletedID":
+				return ec.fieldContext_StatusDeleteResponse_deletedID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusDeleteResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_statusDelete_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_statusNamespaceCreate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_statusNamespaceCreate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().StatusNamespaceCreate(rctx, fc.Args["input"].(generated.CreateStatusNamespaceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StatusNamespaceCreatePayload)
+	fc.Result = res
+	return ec.marshalNStatusNamespaceCreatePayload2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceCreatePayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_statusNamespaceCreate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "statusNamespace":
+				return ec.fieldContext_StatusNamespaceCreatePayload_statusNamespace(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusNamespaceCreatePayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_statusNamespaceCreate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_statusNamespaceDelete(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_statusNamespaceDelete(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().StatusNamespaceDelete(rctx, fc.Args["id"].(gidx.PrefixedID), fc.Args["force"].(bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StatusNamespaceDeletePayload)
+	fc.Result = res
+	return ec.marshalNStatusNamespaceDeletePayload2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceDeletePayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_statusNamespaceDelete(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "deletedID":
+				return ec.fieldContext_StatusNamespaceDeletePayload_deletedID(ctx, field)
+			case "statusDeletedCount":
+				return ec.fieldContext_StatusNamespaceDeletePayload_statusDeletedCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusNamespaceDeletePayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_statusNamespaceDelete_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_statusNamespaceUpdate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_statusNamespaceUpdate(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().StatusNamespaceUpdate(rctx, fc.Args["id"].(gidx.PrefixedID), fc.Args["input"].(generated.UpdateStatusNamespaceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*StatusNamespaceUpdatePayload)
+	fc.Result = res
+	return ec.marshalNStatusNamespaceUpdatePayload2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceUpdatePayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_statusNamespaceUpdate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "statusNamespace":
+				return ec.fieldContext_StatusNamespaceUpdatePayload_statusNamespace(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusNamespaceUpdatePayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_statusNamespaceUpdate_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *entgql.PageInfo[gidx.PrefixedID]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -5436,6 +6334,113 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _ResourceProvider_id(ctx context.Context, field graphql.CollectedField, obj *ResourceProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceProvider_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gidx.PrefixedID)
+	fc.Result = res
+	return ec.marshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ResourceProvider_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ResourceProvider",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ResourceProvider_statusNamespaces(ctx context.Context, field graphql.CollectedField, obj *ResourceProvider) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ResourceProvider_statusNamespaces(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ResourceProvider().StatusNamespaces(rctx, obj, fc.Args["after"].(*entgql.Cursor[gidx.PrefixedID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[gidx.PrefixedID]), fc.Args["last"].(*int), fc.Args["orderBy"].(*generated.StatusNamespaceOrder), fc.Args["where"].(*generated.StatusNamespaceWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*generated.StatusNamespaceConnection)
+	fc.Result = res
+	return ec.marshalNStatusNamespaceConnection2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ResourceProvider_statusNamespaces(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ResourceProvider",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "edges":
+				return ec.fieldContext_StatusNamespaceConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_StatusNamespaceConnection_pageInfo(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_StatusNamespaceConnection_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusNamespaceConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_ResourceProvider_statusNamespaces_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Status_id(ctx context.Context, field graphql.CollectedField, obj *generated.Status) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Status_id(ctx, field)
 	if err != nil {
@@ -5793,6 +6798,8 @@ func (ec *executionContext) fieldContext_Status_namespace(ctx context.Context, f
 				return ec.fieldContext_StatusNamespace_name(ctx, field)
 			case "private":
 				return ec.fieldContext_StatusNamespace_private(ctx, field)
+			case "resourceProvider":
+				return ec.fieldContext_StatusNamespace_resourceProvider(ctx, field)
 			case "tenant":
 				return ec.fieldContext_StatusNamespace_tenant(ctx, field)
 			}
@@ -6000,6 +7007,50 @@ func (ec *executionContext) fieldContext_StatusConnection_totalCount(ctx context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatusDeleteResponse_deletedID(ctx context.Context, field graphql.CollectedField, obj *StatusDeleteResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusDeleteResponse_deletedID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gidx.PrefixedID)
+	fc.Result = res
+	return ec.marshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusDeleteResponse_deletedID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusDeleteResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6330,6 +7381,56 @@ func (ec *executionContext) fieldContext_StatusNamespace_private(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _StatusNamespace_resourceProvider(ctx context.Context, field graphql.CollectedField, obj *generated.StatusNamespace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusNamespace_resourceProvider(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StatusNamespace().ResourceProvider(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ResourceProvider)
+	fc.Result = res
+	return ec.marshalNResourceProvider2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐResourceProvider(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusNamespace_resourceProvider(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusNamespace",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ResourceProvider_id(ctx, field)
+			case "statusNamespaces":
+				return ec.fieldContext_ResourceProvider_statusNamespaces(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ResourceProvider", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StatusNamespace_tenant(ctx context.Context, field graphql.CollectedField, obj *generated.StatusNamespace) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StatusNamespace_tenant(ctx, field)
 	if err != nil {
@@ -6527,6 +7628,154 @@ func (ec *executionContext) fieldContext_StatusNamespaceConnection_totalCount(ct
 	return fc, nil
 }
 
+func (ec *executionContext) _StatusNamespaceCreatePayload_statusNamespace(ctx context.Context, field graphql.CollectedField, obj *StatusNamespaceCreatePayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusNamespaceCreatePayload_statusNamespace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StatusNamespace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*generated.StatusNamespace)
+	fc.Result = res
+	return ec.marshalNStatusNamespace2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespace(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusNamespaceCreatePayload_statusNamespace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusNamespaceCreatePayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StatusNamespace_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_StatusNamespace_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_StatusNamespace_updatedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_StatusNamespace_name(ctx, field)
+			case "private":
+				return ec.fieldContext_StatusNamespace_private(ctx, field)
+			case "resourceProvider":
+				return ec.fieldContext_StatusNamespace_resourceProvider(ctx, field)
+			case "tenant":
+				return ec.fieldContext_StatusNamespace_tenant(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusNamespace", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatusNamespaceDeletePayload_deletedID(ctx context.Context, field graphql.CollectedField, obj *StatusNamespaceDeletePayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusNamespaceDeletePayload_deletedID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(gidx.PrefixedID)
+	fc.Result = res
+	return ec.marshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusNamespaceDeletePayload_deletedID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusNamespaceDeletePayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatusNamespaceDeletePayload_statusDeletedCount(ctx context.Context, field graphql.CollectedField, obj *StatusNamespaceDeletePayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusNamespaceDeletePayload_statusDeletedCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StatusDeletedCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusNamespaceDeletePayload_statusDeletedCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusNamespaceDeletePayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _StatusNamespaceEdge_node(ctx context.Context, field graphql.CollectedField, obj *generated.StatusNamespaceEdge) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_StatusNamespaceEdge_node(ctx, field)
 	if err != nil {
@@ -6573,6 +7822,8 @@ func (ec *executionContext) fieldContext_StatusNamespaceEdge_node(ctx context.Co
 				return ec.fieldContext_StatusNamespace_name(ctx, field)
 			case "private":
 				return ec.fieldContext_StatusNamespace_private(ctx, field)
+			case "resourceProvider":
+				return ec.fieldContext_StatusNamespace_resourceProvider(ctx, field)
 			case "tenant":
 				return ec.fieldContext_StatusNamespace_tenant(ctx, field)
 			}
@@ -6621,6 +7872,130 @@ func (ec *executionContext) fieldContext_StatusNamespaceEdge_cursor(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatusNamespaceUpdatePayload_statusNamespace(ctx context.Context, field graphql.CollectedField, obj *StatusNamespaceUpdatePayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusNamespaceUpdatePayload_statusNamespace(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StatusNamespace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*generated.StatusNamespace)
+	fc.Result = res
+	return ec.marshalNStatusNamespace2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespace(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusNamespaceUpdatePayload_statusNamespace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusNamespaceUpdatePayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_StatusNamespace_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_StatusNamespace_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_StatusNamespace_updatedAt(ctx, field)
+			case "name":
+				return ec.fieldContext_StatusNamespace_name(ctx, field)
+			case "private":
+				return ec.fieldContext_StatusNamespace_private(ctx, field)
+			case "resourceProvider":
+				return ec.fieldContext_StatusNamespace_resourceProvider(ctx, field)
+			case "tenant":
+				return ec.fieldContext_StatusNamespace_tenant(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type StatusNamespace", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StatusUpdateResponse_status(ctx context.Context, field graphql.CollectedField, obj *StatusUpdateResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_StatusUpdateResponse_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*generated.Status)
+	fc.Result = res
+	return ec.marshalNStatus2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_StatusUpdateResponse_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StatusUpdateResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Status_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Status_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Status_updatedAt(ctx, field)
+			case "metadataID":
+				return ec.fieldContext_Status_metadataID(ctx, field)
+			case "statusNamespaceID":
+				return ec.fieldContext_Status_statusNamespaceID(ctx, field)
+			case "source":
+				return ec.fieldContext_Status_source(ctx, field)
+			case "data":
+				return ec.fieldContext_Status_data(ctx, field)
+			case "namespace":
+				return ec.fieldContext_Status_namespace(ctx, field)
+			case "metadata":
+				return ec.fieldContext_Status_metadata(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Status", field.Name)
 		},
 	}
 	return fc, nil
@@ -8628,18 +10003,20 @@ func (ec *executionContext) unmarshalInputAnnotationDeleteInput(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nodeID"))
-			it.NodeID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NodeID = data
 		case "namespaceID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("namespaceID"))
-			it.NamespaceID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NamespaceID = data
 		}
 	}
 
@@ -8668,18 +10045,20 @@ func (ec *executionContext) unmarshalInputAnnotationNamespaceOrder(ctx context.C
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Direction = data
 		case "field":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNAnnotationNamespaceOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceOrderField(ctx, v)
+			data, err := ec.unmarshalNAnnotationNamespaceOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Field = data
 		}
 	}
 
@@ -8704,338 +10083,380 @@ func (ec *executionContext) unmarshalInputAnnotationNamespaceWhereInput(ctx cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			it.Not, err = ec.unmarshalOAnnotationNamespaceWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInput(ctx, v)
+			data, err := ec.unmarshalOAnnotationNamespaceWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Not = data
 		case "and":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			it.And, err = ec.unmarshalOAnnotationNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.And = data
 		case "or":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			it.Or, err = ec.unmarshalOAnnotationNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Or = data
 		case "id":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "idNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNEQ = data
 		case "idIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDIn = data
 		case "idNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNotIn = data
 		case "idGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGT = data
 		case "idGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGTE = data
 		case "idLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLT = data
 		case "idLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLTE = data
 		case "createdAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			it.CreatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAt = data
 		case "createdAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
-			it.CreatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNEQ = data
 		case "createdAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
-			it.CreatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtIn = data
 		case "createdAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
-			it.CreatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNotIn = data
 		case "createdAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
-			it.CreatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGT = data
 		case "createdAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
-			it.CreatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGTE = data
 		case "createdAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
-			it.CreatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLT = data
 		case "createdAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
-			it.CreatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLTE = data
 		case "updatedAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			it.UpdatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAt = data
 		case "updatedAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNEQ"))
-			it.UpdatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNEQ = data
 		case "updatedAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtIn"))
-			it.UpdatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtIn = data
 		case "updatedAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNotIn"))
-			it.UpdatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNotIn = data
 		case "updatedAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGT"))
-			it.UpdatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGT = data
 		case "updatedAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGTE"))
-			it.UpdatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGTE = data
 		case "updatedAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLT"))
-			it.UpdatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLT = data
 		case "updatedAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLTE"))
-			it.UpdatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLTE = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "nameNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
-			it.NameNEQ, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameNEQ = data
 		case "nameIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
-			it.NameIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameIn = data
 		case "nameNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
-			it.NameNotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameNotIn = data
 		case "nameGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
-			it.NameGT, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameGT = data
 		case "nameGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
-			it.NameGTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameGTE = data
 		case "nameLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
-			it.NameLT, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameLT = data
 		case "nameLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
-			it.NameLTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameLTE = data
 		case "nameContains":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
-			it.NameContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameContains = data
 		case "nameHasPrefix":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
-			it.NameHasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameHasPrefix = data
 		case "nameHasSuffix":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
-			it.NameHasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameHasSuffix = data
 		case "nameEqualFold":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
-			it.NameEqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameEqualFold = data
 		case "nameContainsFold":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
-			it.NameContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameContainsFold = data
 		case "hasAnnotations":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasAnnotations"))
-			it.HasAnnotations, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasAnnotations = data
 		case "hasAnnotationsWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasAnnotationsWith"))
-			it.HasAnnotationsWith, err = ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasAnnotationsWith = data
 		}
 	}
 
@@ -9064,18 +10485,20 @@ func (ec *executionContext) unmarshalInputAnnotationOrder(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Direction = data
 		case "field":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNAnnotationOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationOrderField(ctx, v)
+			data, err := ec.unmarshalNAnnotationOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Field = data
 		}
 	}
 
@@ -9100,26 +10523,29 @@ func (ec *executionContext) unmarshalInputAnnotationUpdateInput(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nodeID"))
-			it.NodeID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NodeID = data
 		case "namespaceID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("namespaceID"))
-			it.NamespaceID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NamespaceID = data
 		case "data":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
-			it.Data, err = ec.unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx, v)
+			data, err := ec.unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Data = data
 		}
 	}
 
@@ -9144,250 +10570,281 @@ func (ec *executionContext) unmarshalInputAnnotationWhereInput(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			it.Not, err = ec.unmarshalOAnnotationWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInput(ctx, v)
+			data, err := ec.unmarshalOAnnotationWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Not = data
 		case "and":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			it.And, err = ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.And = data
 		case "or":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			it.Or, err = ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Or = data
 		case "id":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "idNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNEQ = data
 		case "idIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDIn = data
 		case "idNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNotIn = data
 		case "idGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGT = data
 		case "idGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGTE = data
 		case "idLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLT = data
 		case "idLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLTE = data
 		case "createdAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			it.CreatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAt = data
 		case "createdAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
-			it.CreatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNEQ = data
 		case "createdAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
-			it.CreatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtIn = data
 		case "createdAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
-			it.CreatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNotIn = data
 		case "createdAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
-			it.CreatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGT = data
 		case "createdAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
-			it.CreatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGTE = data
 		case "createdAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
-			it.CreatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLT = data
 		case "createdAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
-			it.CreatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLTE = data
 		case "updatedAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			it.UpdatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAt = data
 		case "updatedAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNEQ"))
-			it.UpdatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNEQ = data
 		case "updatedAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtIn"))
-			it.UpdatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtIn = data
 		case "updatedAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNotIn"))
-			it.UpdatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNotIn = data
 		case "updatedAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGT"))
-			it.UpdatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGT = data
 		case "updatedAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGTE"))
-			it.UpdatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGTE = data
 		case "updatedAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLT"))
-			it.UpdatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLT = data
 		case "updatedAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLTE"))
-			it.UpdatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLTE = data
 		case "hasNamespace":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasNamespace"))
-			it.HasNamespace, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasNamespace = data
 		case "hasNamespaceWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasNamespaceWith"))
-			it.HasNamespaceWith, err = ec.unmarshalOAnnotationNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationNamespaceWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasNamespaceWith = data
 		case "hasMetadata":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMetadata"))
-			it.HasMetadata, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasMetadata = data
 		case "hasMetadataWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMetadataWith"))
-			it.HasMetadataWith, err = ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasMetadataWith = data
 		}
 	}
 
@@ -9412,26 +10869,29 @@ func (ec *executionContext) unmarshalInputCreateAnnotationNamespaceInput(ctx con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "tenantID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tenantID"))
-			it.TenantID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.TenantID = data
 		case "private":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("private"))
-			it.Private, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Private = data
 		}
 	}
 
@@ -9456,34 +10916,38 @@ func (ec *executionContext) unmarshalInputCreateStatusInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
-			it.Source, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Source = data
 		case "data":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
-			it.Data, err = ec.unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx, v)
+			data, err := ec.unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Data = data
 		case "namespaceID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("namespaceID"))
-			it.NamespaceID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NamespaceID = data
 		case "metadataID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("metadataID"))
-			it.MetadataID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.MetadataID = data
 		}
 	}
 
@@ -9508,26 +10972,29 @@ func (ec *executionContext) unmarshalInputCreateStatusNamespaceInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "resourceProviderID":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resourceProviderID"))
-			it.ResourceProviderID, err = ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ResourceProviderID = data
 		case "private":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("private"))
-			it.Private, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Private = data
 		}
 	}
 
@@ -9556,18 +11023,20 @@ func (ec *executionContext) unmarshalInputMetadataOrder(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Direction = data
 		case "field":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNMetadataOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataOrderField(ctx, v)
+			data, err := ec.unmarshalNMetadataOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Field = data
 		}
 	}
 
@@ -9592,250 +11061,328 @@ func (ec *executionContext) unmarshalInputMetadataWhereInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			it.Not, err = ec.unmarshalOMetadataWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInput(ctx, v)
+			data, err := ec.unmarshalOMetadataWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Not = data
 		case "and":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			it.And, err = ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.And = data
 		case "or":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			it.Or, err = ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Or = data
 		case "id":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "idNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNEQ = data
 		case "idIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDIn = data
 		case "idNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNotIn = data
 		case "idGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGT = data
 		case "idGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGTE = data
 		case "idLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLT = data
 		case "idLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLTE = data
 		case "createdAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			it.CreatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAt = data
 		case "createdAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
-			it.CreatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNEQ = data
 		case "createdAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
-			it.CreatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtIn = data
 		case "createdAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
-			it.CreatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNotIn = data
 		case "createdAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
-			it.CreatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGT = data
 		case "createdAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
-			it.CreatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGTE = data
 		case "createdAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
-			it.CreatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLT = data
 		case "createdAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
-			it.CreatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLTE = data
 		case "updatedAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			it.UpdatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAt = data
 		case "updatedAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNEQ"))
-			it.UpdatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNEQ = data
 		case "updatedAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtIn"))
-			it.UpdatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtIn = data
 		case "updatedAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNotIn"))
-			it.UpdatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNotIn = data
 		case "updatedAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGT"))
-			it.UpdatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGT = data
 		case "updatedAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGTE"))
-			it.UpdatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGTE = data
 		case "updatedAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLT"))
-			it.UpdatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLT = data
 		case "updatedAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLTE"))
-			it.UpdatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLTE = data
 		case "hasAnnotations":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasAnnotations"))
-			it.HasAnnotations, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasAnnotations = data
 		case "hasAnnotationsWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasAnnotationsWith"))
-			it.HasAnnotationsWith, err = ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOAnnotationWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐAnnotationWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasAnnotationsWith = data
 		case "hasStatuses":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasStatuses"))
-			it.HasStatuses, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasStatuses = data
 		case "hasStatusesWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasStatusesWith"))
-			it.HasStatusesWith, err = ec.unmarshalOStatusWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOStatusWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasStatusesWith = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStatusDeleteInput(ctx context.Context, obj interface{}) (StatusDeleteInput, error) {
+	var it StatusDeleteInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"nodeID", "namespaceID", "source"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "nodeID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nodeID"))
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NodeID = data
+		case "namespaceID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("namespaceID"))
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NamespaceID = data
+		case "source":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Source = data
 		}
 	}
 
@@ -9864,18 +11411,20 @@ func (ec *executionContext) unmarshalInputStatusNamespaceOrder(ctx context.Conte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Direction = data
 		case "field":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNStatusNamespaceOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceOrderField(ctx, v)
+			data, err := ec.unmarshalNStatusNamespaceOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Field = data
 		}
 	}
 
@@ -9900,322 +11449,362 @@ func (ec *executionContext) unmarshalInputStatusNamespaceWhereInput(ctx context.
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			it.Not, err = ec.unmarshalOStatusNamespaceWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInput(ctx, v)
+			data, err := ec.unmarshalOStatusNamespaceWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Not = data
 		case "and":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			it.And, err = ec.unmarshalOStatusNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOStatusNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.And = data
 		case "or":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			it.Or, err = ec.unmarshalOStatusNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOStatusNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Or = data
 		case "id":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "idNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNEQ = data
 		case "idIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDIn = data
 		case "idNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNotIn = data
 		case "idGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGT = data
 		case "idGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGTE = data
 		case "idLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLT = data
 		case "idLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLTE = data
 		case "createdAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			it.CreatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAt = data
 		case "createdAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
-			it.CreatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNEQ = data
 		case "createdAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
-			it.CreatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtIn = data
 		case "createdAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
-			it.CreatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNotIn = data
 		case "createdAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
-			it.CreatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGT = data
 		case "createdAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
-			it.CreatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGTE = data
 		case "createdAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
-			it.CreatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLT = data
 		case "createdAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
-			it.CreatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLTE = data
 		case "updatedAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			it.UpdatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAt = data
 		case "updatedAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNEQ"))
-			it.UpdatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNEQ = data
 		case "updatedAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtIn"))
-			it.UpdatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtIn = data
 		case "updatedAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNotIn"))
-			it.UpdatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNotIn = data
 		case "updatedAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGT"))
-			it.UpdatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGT = data
 		case "updatedAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGTE"))
-			it.UpdatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGTE = data
 		case "updatedAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLT"))
-			it.UpdatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLT = data
 		case "updatedAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLTE"))
-			it.UpdatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLTE = data
 		case "name":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "nameNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
-			it.NameNEQ, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameNEQ = data
 		case "nameIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
-			it.NameIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameIn = data
 		case "nameNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
-			it.NameNotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameNotIn = data
 		case "nameGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
-			it.NameGT, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameGT = data
 		case "nameGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
-			it.NameGTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameGTE = data
 		case "nameLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
-			it.NameLT, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameLT = data
 		case "nameLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
-			it.NameLTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameLTE = data
 		case "nameContains":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
-			it.NameContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameContains = data
 		case "nameHasPrefix":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
-			it.NameHasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameHasPrefix = data
 		case "nameHasSuffix":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
-			it.NameHasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameHasSuffix = data
 		case "nameEqualFold":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
-			it.NameEqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameEqualFold = data
 		case "nameContainsFold":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
-			it.NameContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.NameContainsFold = data
 		}
 	}
 
@@ -10244,18 +11833,76 @@ func (ec *executionContext) unmarshalInputStatusOrder(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
-			it.Direction, err = ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
+			data, err := ec.unmarshalNOrderDirection2entgoᚗioᚋcontribᚋentgqlᚐOrderDirection(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Direction = data
 		case "field":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
-			it.Field, err = ec.unmarshalNStatusOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusOrderField(ctx, v)
+			data, err := ec.unmarshalNStatusOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusOrderField(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Field = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputStatusUpdateInput(ctx context.Context, obj interface{}) (StatusUpdateInput, error) {
+	var it StatusUpdateInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"nodeID", "namespaceID", "source", "data"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "nodeID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nodeID"))
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NodeID = data
+		case "namespaceID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("namespaceID"))
+			data, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NamespaceID = data
+		case "source":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Source = data
+		case "data":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+			data, err := ec.unmarshalNJSON2encodingᚋjsonᚐRawMessage(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Data = data
 		}
 	}
 
@@ -10280,354 +11927,398 @@ func (ec *executionContext) unmarshalInputStatusWhereInput(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
-			it.Not, err = ec.unmarshalOStatusWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInput(ctx, v)
+			data, err := ec.unmarshalOStatusWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Not = data
 		case "and":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
-			it.And, err = ec.unmarshalOStatusWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOStatusWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.And = data
 		case "or":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
-			it.Or, err = ec.unmarshalOStatusWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOStatusWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Or = data
 		case "id":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.ID = data
 		case "idNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
-			it.IDNEQ, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNEQ = data
 		case "idIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
-			it.IDIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDIn = data
 		case "idNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
-			it.IDNotIn, err = ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
+			data, err := ec.unmarshalOID2ᚕgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDNotIn = data
 		case "idGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
-			it.IDGT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGT = data
 		case "idGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
-			it.IDGTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDGTE = data
 		case "idLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
-			it.IDLT, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLT = data
 		case "idLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
-			it.IDLTE, err = ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
+			data, err := ec.unmarshalOID2ᚖgoᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.IDLTE = data
 		case "createdAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
-			it.CreatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAt = data
 		case "createdAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
-			it.CreatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNEQ = data
 		case "createdAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
-			it.CreatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtIn = data
 		case "createdAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
-			it.CreatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtNotIn = data
 		case "createdAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
-			it.CreatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGT = data
 		case "createdAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
-			it.CreatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtGTE = data
 		case "createdAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
-			it.CreatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLT = data
 		case "createdAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
-			it.CreatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.CreatedAtLTE = data
 		case "updatedAt":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			it.UpdatedAt, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAt = data
 		case "updatedAtNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNEQ"))
-			it.UpdatedAtNEQ, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNEQ = data
 		case "updatedAtIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtIn"))
-			it.UpdatedAtIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtIn = data
 		case "updatedAtNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNotIn"))
-			it.UpdatedAtNotIn, err = ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtNotIn = data
 		case "updatedAtGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGT"))
-			it.UpdatedAtGT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGT = data
 		case "updatedAtGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtGTE"))
-			it.UpdatedAtGTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtGTE = data
 		case "updatedAtLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLT"))
-			it.UpdatedAtLT, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLT = data
 		case "updatedAtLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtLTE"))
-			it.UpdatedAtLTE, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.UpdatedAtLTE = data
 		case "source":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("source"))
-			it.Source, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Source = data
 		case "sourceNEQ":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceNEQ"))
-			it.SourceNEQ, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceNEQ = data
 		case "sourceIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceIn"))
-			it.SourceIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceIn = data
 		case "sourceNotIn":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceNotIn"))
-			it.SourceNotIn, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceNotIn = data
 		case "sourceGT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceGT"))
-			it.SourceGT, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceGT = data
 		case "sourceGTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceGTE"))
-			it.SourceGTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceGTE = data
 		case "sourceLT":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceLT"))
-			it.SourceLT, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceLT = data
 		case "sourceLTE":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceLTE"))
-			it.SourceLTE, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceLTE = data
 		case "sourceContains":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceContains"))
-			it.SourceContains, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceContains = data
 		case "sourceHasPrefix":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceHasPrefix"))
-			it.SourceHasPrefix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceHasPrefix = data
 		case "sourceHasSuffix":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceHasSuffix"))
-			it.SourceHasSuffix, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceHasSuffix = data
 		case "sourceEqualFold":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceEqualFold"))
-			it.SourceEqualFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceEqualFold = data
 		case "sourceContainsFold":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceContainsFold"))
-			it.SourceContainsFold, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.SourceContainsFold = data
 		case "hasNamespace":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasNamespace"))
-			it.HasNamespace, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasNamespace = data
 		case "hasNamespaceWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasNamespaceWith"))
-			it.HasNamespaceWith, err = ec.unmarshalOStatusNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOStatusNamespaceWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasNamespaceWith = data
 		case "hasMetadata":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMetadata"))
-			it.HasMetadata, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasMetadata = data
 		case "hasMetadataWith":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasMetadataWith"))
-			it.HasMetadataWith, err = ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
+			data, err := ec.unmarshalOMetadataWhereInput2ᚕᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐMetadataWhereInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.HasMetadataWith = data
 		}
 	}
 
@@ -10652,18 +12343,20 @@ func (ec *executionContext) unmarshalInputUpdateAnnotationNamespaceInput(ctx con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "private":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("private"))
-			it.Private, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Private = data
 		}
 	}
 
@@ -10688,18 +12381,20 @@ func (ec *executionContext) unmarshalInputUpdateStatusInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
-			it.Data, err = ec.unmarshalOJSON2encodingᚋjsonᚐRawMessage(ctx, v)
+			data, err := ec.unmarshalOJSON2encodingᚋjsonᚐRawMessage(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Data = data
 		case "appendData":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appendData"))
-			it.AppendData, err = ec.unmarshalOJSON2encodingᚋjsonᚐRawMessage(ctx, v)
+			data, err := ec.unmarshalOJSON2encodingᚋjsonᚐRawMessage(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.AppendData = data
 		}
 	}
 
@@ -10724,18 +12419,20 @@ func (ec *executionContext) unmarshalInputUpdateStatusNamespaceInput(ctx context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Name = data
 		case "private":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("private"))
-			it.Private, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
+			it.Private = data
 		}
 	}
 
@@ -10805,6 +12502,13 @@ func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, 
 			return graphql.Null
 		}
 		return ec._Metadata(ctx, sel, obj)
+	case ResourceProvider:
+		return ec._ResourceProvider(ctx, sel, &obj)
+	case *ResourceProvider:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ResourceProvider(ctx, sel, obj)
 	case generated.Status:
 		return ec._Status(ctx, sel, &obj)
 	case *generated.Status:
@@ -11401,6 +13105,29 @@ func (ec *executionContext) _Entity(ctx context.Context, sel ast.SelectionSet) g
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "findResourceProviderByID":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Entity_findResourceProviderByID(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "findStatusByID":
 			field := field
 
@@ -11699,6 +13426,51 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "statusUpdate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_statusUpdate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "statusDelete":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_statusDelete(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "statusNamespaceCreate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_statusNamespaceCreate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "statusNamespaceDelete":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_statusNamespaceDelete(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "statusNamespaceUpdate":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_statusNamespaceUpdate(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11861,6 +13633,54 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var resourceProviderImplementors = []string{"ResourceProvider", "_Entity"}
+
+func (ec *executionContext) _ResourceProvider(ctx context.Context, sel ast.SelectionSet, obj *ResourceProvider) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, resourceProviderImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ResourceProvider")
+		case "id":
+
+			out.Values[i] = ec._ResourceProvider_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "statusNamespaces":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ResourceProvider_statusNamespaces(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var statusImplementors = []string{"Status", "Node", "_Entity"}
 
 func (ec *executionContext) _Status(ctx context.Context, sel ast.SelectionSet, obj *generated.Status) graphql.Marshaler {
@@ -12010,6 +13830,34 @@ func (ec *executionContext) _StatusConnection(ctx context.Context, sel ast.Selec
 	return out
 }
 
+var statusDeleteResponseImplementors = []string{"StatusDeleteResponse"}
+
+func (ec *executionContext) _StatusDeleteResponse(ctx context.Context, sel ast.SelectionSet, obj *StatusDeleteResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statusDeleteResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StatusDeleteResponse")
+		case "deletedID":
+
+			out.Values[i] = ec._StatusDeleteResponse_deletedID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var statusEdgeImplementors = []string{"StatusEdge"}
 
 func (ec *executionContext) _StatusEdge(ctx context.Context, sel ast.SelectionSet, obj *generated.StatusEdge) graphql.Marshaler {
@@ -12087,6 +13935,26 @@ func (ec *executionContext) _StatusNamespace(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "resourceProvider":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StatusNamespace_resourceProvider(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "tenant":
 			field := field
 
@@ -12157,6 +14025,69 @@ func (ec *executionContext) _StatusNamespaceConnection(ctx context.Context, sel 
 	return out
 }
 
+var statusNamespaceCreatePayloadImplementors = []string{"StatusNamespaceCreatePayload"}
+
+func (ec *executionContext) _StatusNamespaceCreatePayload(ctx context.Context, sel ast.SelectionSet, obj *StatusNamespaceCreatePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statusNamespaceCreatePayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StatusNamespaceCreatePayload")
+		case "statusNamespace":
+
+			out.Values[i] = ec._StatusNamespaceCreatePayload_statusNamespace(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var statusNamespaceDeletePayloadImplementors = []string{"StatusNamespaceDeletePayload"}
+
+func (ec *executionContext) _StatusNamespaceDeletePayload(ctx context.Context, sel ast.SelectionSet, obj *StatusNamespaceDeletePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statusNamespaceDeletePayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StatusNamespaceDeletePayload")
+		case "deletedID":
+
+			out.Values[i] = ec._StatusNamespaceDeletePayload_deletedID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "statusDeletedCount":
+
+			out.Values[i] = ec._StatusNamespaceDeletePayload_statusDeletedCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var statusNamespaceEdgeImplementors = []string{"StatusNamespaceEdge"}
 
 func (ec *executionContext) _StatusNamespaceEdge(ctx context.Context, sel ast.SelectionSet, obj *generated.StatusNamespaceEdge) graphql.Marshaler {
@@ -12174,6 +14105,62 @@ func (ec *executionContext) _StatusNamespaceEdge(ctx context.Context, sel ast.Se
 		case "cursor":
 
 			out.Values[i] = ec._StatusNamespaceEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var statusNamespaceUpdatePayloadImplementors = []string{"StatusNamespaceUpdatePayload"}
+
+func (ec *executionContext) _StatusNamespaceUpdatePayload(ctx context.Context, sel ast.SelectionSet, obj *StatusNamespaceUpdatePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statusNamespaceUpdatePayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StatusNamespaceUpdatePayload")
+		case "statusNamespace":
+
+			out.Values[i] = ec._StatusNamespaceUpdatePayload_statusNamespace(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var statusUpdateResponseImplementors = []string{"StatusUpdateResponse"}
+
+func (ec *executionContext) _StatusUpdateResponse(ctx context.Context, sel ast.SelectionSet, obj *StatusUpdateResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, statusUpdateResponseImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StatusUpdateResponse")
+		case "status":
+
+			out.Values[i] = ec._StatusUpdateResponse_status(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -12784,6 +14771,11 @@ func (ec *executionContext) unmarshalNCreateAnnotationNamespaceInput2goᚗinfrat
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateStatusNamespaceInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐCreateStatusNamespaceInput(ctx context.Context, v interface{}) (generated.CreateStatusNamespaceInput, error) {
+	res, err := ec.unmarshalInputCreateStatusNamespaceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx context.Context, v interface{}) (entgql.Cursor[gidx.PrefixedID], error) {
 	var res entgql.Cursor[gidx.PrefixedID]
 	err := res.UnmarshalGQL(v)
@@ -12889,6 +14881,20 @@ func (ec *executionContext) marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPag
 	return ec._PageInfo(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNResourceProvider2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐResourceProvider(ctx context.Context, sel ast.SelectionSet, v ResourceProvider) graphql.Marshaler {
+	return ec._ResourceProvider(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNResourceProvider2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐResourceProvider(ctx context.Context, sel ast.SelectionSet, v *ResourceProvider) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ResourceProvider(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNStatus2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatus(ctx context.Context, sel ast.SelectionSet, v generated.Status) graphql.Marshaler {
 	return ec._Status(ctx, sel, &v)
 }
@@ -12901,6 +14907,25 @@ func (ec *executionContext) marshalNStatus2ᚖgoᚗinfratographerᚗcomᚋmetada
 		return graphql.Null
 	}
 	return ec._Status(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNStatusDeleteInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusDeleteInput(ctx context.Context, v interface{}) (StatusDeleteInput, error) {
+	res, err := ec.unmarshalInputStatusDeleteInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStatusDeleteResponse2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusDeleteResponse(ctx context.Context, sel ast.SelectionSet, v StatusDeleteResponse) graphql.Marshaler {
+	return ec._StatusDeleteResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStatusDeleteResponse2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusDeleteResponse(ctx context.Context, sel ast.SelectionSet, v *StatusDeleteResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StatusDeleteResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNStatusNamespace2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespace(ctx context.Context, sel ast.SelectionSet, v generated.StatusNamespace) graphql.Marshaler {
@@ -12931,6 +14956,34 @@ func (ec *executionContext) marshalNStatusNamespaceConnection2ᚖgoᚗinfratogra
 	return ec._StatusNamespaceConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNStatusNamespaceCreatePayload2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceCreatePayload(ctx context.Context, sel ast.SelectionSet, v StatusNamespaceCreatePayload) graphql.Marshaler {
+	return ec._StatusNamespaceCreatePayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStatusNamespaceCreatePayload2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceCreatePayload(ctx context.Context, sel ast.SelectionSet, v *StatusNamespaceCreatePayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StatusNamespaceCreatePayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNStatusNamespaceDeletePayload2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceDeletePayload(ctx context.Context, sel ast.SelectionSet, v StatusNamespaceDeletePayload) graphql.Marshaler {
+	return ec._StatusNamespaceDeletePayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStatusNamespaceDeletePayload2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceDeletePayload(ctx context.Context, sel ast.SelectionSet, v *StatusNamespaceDeletePayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StatusNamespaceDeletePayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNStatusNamespaceOrderField2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceOrderField(ctx context.Context, v interface{}) (*generated.StatusNamespaceOrderField, error) {
 	var res = new(generated.StatusNamespaceOrderField)
 	err := res.UnmarshalGQL(v)
@@ -12945,6 +14998,20 @@ func (ec *executionContext) marshalNStatusNamespaceOrderField2ᚖgoᚗinfratogra
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalNStatusNamespaceUpdatePayload2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceUpdatePayload(ctx context.Context, sel ast.SelectionSet, v StatusNamespaceUpdatePayload) graphql.Marshaler {
+	return ec._StatusNamespaceUpdatePayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStatusNamespaceUpdatePayload2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusNamespaceUpdatePayload(ctx context.Context, sel ast.SelectionSet, v *StatusNamespaceUpdatePayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StatusNamespaceUpdatePayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNStatusNamespaceWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusNamespaceWhereInput(ctx context.Context, v interface{}) (*generated.StatusNamespaceWhereInput, error) {
@@ -12966,6 +15033,25 @@ func (ec *executionContext) marshalNStatusOrderField2ᚖgoᚗinfratographerᚗco
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalNStatusUpdateInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusUpdateInput(ctx context.Context, v interface{}) (StatusUpdateInput, error) {
+	res, err := ec.unmarshalInputStatusUpdateInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNStatusUpdateResponse2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusUpdateResponse(ctx context.Context, sel ast.SelectionSet, v StatusUpdateResponse) graphql.Marshaler {
+	return ec._StatusUpdateResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStatusUpdateResponse2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋgraphapiᚐStatusUpdateResponse(ctx context.Context, sel ast.SelectionSet, v *StatusUpdateResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StatusUpdateResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNStatusWhereInput2ᚖgoᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐStatusWhereInput(ctx context.Context, v interface{}) (*generated.StatusWhereInput, error) {
@@ -13019,6 +15105,11 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 
 func (ec *executionContext) unmarshalNUpdateAnnotationNamespaceInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐUpdateAnnotationNamespaceInput(ctx context.Context, v interface{}) (generated.UpdateAnnotationNamespaceInput, error) {
 	res, err := ec.unmarshalInputUpdateAnnotationNamespaceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateStatusNamespaceInput2goᚗinfratographerᚗcomᚋmetadataᚑapiᚋinternalᚋentᚋgeneratedᚐUpdateStatusNamespaceInput(ctx context.Context, v interface{}) (generated.UpdateStatusNamespaceInput, error) {
+	res, err := ec.unmarshalInputUpdateStatusNamespaceInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -68,8 +68,8 @@ func (Status) Fields() []ent.Field {
 // Indexes of the Status
 func (Status) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("metadata_id", "status_namespace_id").Unique(),
-		index.Fields("metadata_id", "status_namespace_id", "source"),
+		index.Fields("metadata_id", "status_namespace_id"),
+		index.Fields("metadata_id", "status_namespace_id", "source").Unique(),
 		index.Fields("status_namespace_id", "data").Annotations(
 			entsql.IndexTypes(map[string]string{
 				dialect.Postgres: "GIN",

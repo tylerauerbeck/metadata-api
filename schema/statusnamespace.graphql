@@ -1,0 +1,67 @@
+extend type Mutation {
+  """
+  Create an status namespace.
+  """
+  statusNamespaceCreate(
+    input: CreateStatusNamespaceInput!
+  ): StatusNamespaceCreatePayload!
+
+  """
+  Delete an status namespace.
+
+  Setting force allowed deleting an status namespace even if statuss are using it.
+  WARNING: Status data will be lost permenantly!
+  """
+  statusNamespaceDelete(
+    """
+    The ID of the status namespace to be deleted.
+    """
+    id: ID!
+    """
+    Delete the status namespace even if statuss are using it. WARNING!! The statuss will also be deleted!
+    """
+    force: Boolean! = false
+  ): StatusNamespaceDeletePayload!
+
+  """
+  Update an status namespace.
+  """
+  statusNamespaceUpdate(
+    id: ID!
+    input: UpdateStatusNamespaceInput!
+  ): StatusNamespaceUpdatePayload!
+}
+
+"""
+Return response from statusNamespaceCreate
+"""
+type StatusNamespaceCreatePayload {
+  """
+  The created status namespace.
+  """
+  statusNamespace: StatusNamespace!
+}
+
+"""
+Return response from statusNamespaceDelete
+"""
+type StatusNamespaceDeletePayload {
+  """
+  The ID of the deleted status namespace.
+  """
+  deletedID: ID!
+  """
+  The count of statuss deleted
+  """
+  statusDeletedCount: Int!
+}
+
+"""
+Return response from statusNamespaceUpdate
+"""
+type StatusNamespaceUpdatePayload {
+  """
+  The updated status namespace.
+  """
+  statusNamespace: StatusNamespace!
+}

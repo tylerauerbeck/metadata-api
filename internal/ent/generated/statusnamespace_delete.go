@@ -41,7 +41,7 @@ func (snd *StatusNamespaceDelete) Where(ps ...predicate.StatusNamespace) *Status
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (snd *StatusNamespaceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, StatusNamespaceMutation](ctx, snd.sqlExec, snd.mutation, snd.hooks)
+	return withHooks(ctx, snd.sqlExec, snd.mutation, snd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

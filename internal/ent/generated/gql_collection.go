@@ -116,7 +116,7 @@ type annotationPaginateArgs struct {
 	opts          []AnnotationPaginateOption
 }
 
-func newAnnotationPaginateArgs(rv map[string]interface{}) *annotationPaginateArgs {
+func newAnnotationPaginateArgs(rv map[string]any) *annotationPaginateArgs {
 	args := &annotationPaginateArgs{}
 	if rv == nil {
 		return args
@@ -135,7 +135,7 @@ func newAnnotationPaginateArgs(rv map[string]interface{}) *annotationPaginateArg
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &AnnotationOrder{Field: &AnnotationOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -232,7 +232,7 @@ type annotationnamespacePaginateArgs struct {
 	opts          []AnnotationNamespacePaginateOption
 }
 
-func newAnnotationNamespacePaginateArgs(rv map[string]interface{}) *annotationnamespacePaginateArgs {
+func newAnnotationNamespacePaginateArgs(rv map[string]any) *annotationnamespacePaginateArgs {
 	args := &annotationnamespacePaginateArgs{}
 	if rv == nil {
 		return args
@@ -251,7 +251,7 @@ func newAnnotationNamespacePaginateArgs(rv map[string]interface{}) *annotationna
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &AnnotationNamespaceOrder{Field: &AnnotationNamespaceOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -355,7 +355,7 @@ type metadataPaginateArgs struct {
 	opts          []MetadataPaginateOption
 }
 
-func newMetadataPaginateArgs(rv map[string]interface{}) *metadataPaginateArgs {
+func newMetadataPaginateArgs(rv map[string]any) *metadataPaginateArgs {
 	args := &metadataPaginateArgs{}
 	if rv == nil {
 		return args
@@ -374,7 +374,7 @@ func newMetadataPaginateArgs(rv map[string]interface{}) *metadataPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &MetadataOrder{Field: &MetadataOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -497,7 +497,7 @@ type statusPaginateArgs struct {
 	opts          []StatusPaginateOption
 }
 
-func newStatusPaginateArgs(rv map[string]interface{}) *statusPaginateArgs {
+func newStatusPaginateArgs(rv map[string]any) *statusPaginateArgs {
 	args := &statusPaginateArgs{}
 	if rv == nil {
 		return args
@@ -516,7 +516,7 @@ func newStatusPaginateArgs(rv map[string]interface{}) *statusPaginateArgs {
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &StatusOrder{Field: &StatusOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -601,7 +601,7 @@ type statusnamespacePaginateArgs struct {
 	opts          []StatusNamespacePaginateOption
 }
 
-func newStatusNamespacePaginateArgs(rv map[string]interface{}) *statusnamespacePaginateArgs {
+func newStatusNamespacePaginateArgs(rv map[string]any) *statusnamespacePaginateArgs {
 	args := &statusnamespacePaginateArgs{}
 	if rv == nil {
 		return args
@@ -620,7 +620,7 @@ func newStatusNamespacePaginateArgs(rv map[string]interface{}) *statusnamespaceP
 	}
 	if v, ok := rv[orderByField]; ok {
 		switch v := v.(type) {
-		case map[string]interface{}:
+		case map[string]any:
 			var (
 				err1, err2 error
 				order      = &StatusNamespaceOrder{Field: &StatusNamespaceOrderField{}, Direction: entgql.OrderDirectionAsc}
@@ -657,35 +657,18 @@ const (
 	whereField     = "where"
 )
 
-func fieldArgs(ctx context.Context, whereInput interface{}, path ...string) map[string]interface{} {
-	fc := graphql.GetFieldContext(ctx)
-	if fc == nil {
+func fieldArgs(ctx context.Context, whereInput any, path ...string) map[string]any {
+	field := collectedField(ctx, path...)
+	if field == nil || field.Arguments == nil {
 		return nil
 	}
 	oc := graphql.GetOperationContext(ctx)
-	for _, name := range path {
-		var field *graphql.CollectedField
-		for _, f := range graphql.CollectFields(oc, fc.Field.Selections, nil) {
-			if f.Alias == name {
-				field = &f
-				break
-			}
-		}
-		if field == nil {
-			return nil
-		}
-		cf, err := fc.Child(ctx, *field)
-		if err != nil {
-			args := field.ArgumentMap(oc.Variables)
-			return unmarshalArgs(ctx, whereInput, args)
-		}
-		fc = cf
-	}
-	return fc.Args
+	args := field.ArgumentMap(oc.Variables)
+	return unmarshalArgs(ctx, whereInput, args)
 }
 
 // unmarshalArgs allows extracting the field arguments from their raw representation.
-func unmarshalArgs(ctx context.Context, whereInput interface{}, args map[string]interface{}) map[string]interface{} {
+func unmarshalArgs(ctx context.Context, whereInput any, args map[string]any) map[string]any {
 	for _, k := range []string{firstField, lastField} {
 		v, ok := args[k]
 		if !ok {

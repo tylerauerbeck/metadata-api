@@ -41,7 +41,7 @@ func (and *AnnotationNamespaceDelete) Where(ps ...predicate.AnnotationNamespace)
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (and *AnnotationNamespaceDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, AnnotationNamespaceMutation](ctx, and.sqlExec, and.mutation, and.hooks)
+	return withHooks(ctx, and.sqlExec, and.mutation, and.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

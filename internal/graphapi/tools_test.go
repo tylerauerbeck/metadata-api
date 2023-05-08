@@ -26,8 +26,6 @@ import (
 	"go.infratographer.com/metadata-api/x/testcontainersx"
 )
 
-var tenantPrefix = "testtnt"
-
 var (
 	TestDBURI   = os.Getenv("METADATAAPI_TESTDB_URI")
 	EntClient   *ent.Client

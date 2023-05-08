@@ -124,7 +124,7 @@ func (mu *MetadataUpdate) RemoveStatuses(s ...*Status) *MetadataUpdate {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (mu *MetadataUpdate) Save(ctx context.Context) (int, error) {
 	mu.defaults()
-	return withHooks[int, MetadataMutation](ctx, mu.sqlSave, mu.mutation, mu.hooks)
+	return withHooks(ctx, mu.sqlSave, mu.mutation, mu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -372,7 +372,7 @@ func (muo *MetadataUpdateOne) Select(field string, fields ...string) *MetadataUp
 // Save executes the query and returns the updated Metadata entity.
 func (muo *MetadataUpdateOne) Save(ctx context.Context) (*Metadata, error) {
 	muo.defaults()
-	return withHooks[*Metadata, MetadataMutation](ctx, muo.sqlSave, muo.mutation, muo.hooks)
+	return withHooks(ctx, muo.sqlSave, muo.mutation, muo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

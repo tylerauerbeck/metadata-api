@@ -127,7 +127,7 @@ func (anc *AnnotationNamespaceCreate) Mutation() *AnnotationNamespaceMutation {
 // Save creates the AnnotationNamespace in the database.
 func (anc *AnnotationNamespaceCreate) Save(ctx context.Context) (*AnnotationNamespace, error) {
 	anc.defaults()
-	return withHooks[*AnnotationNamespace, AnnotationNamespaceMutation](ctx, anc.sqlSave, anc.mutation, anc.hooks)
+	return withHooks(ctx, anc.sqlSave, anc.mutation, anc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
