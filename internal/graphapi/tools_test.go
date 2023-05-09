@@ -1,14 +1,11 @@
 package graphapi_test
 
 import (
-	"bytes"
 	"context"
-	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -20,6 +17,9 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"go.uber.org/zap"
 
+	"go.infratographer.com/x/goosex"
+
+	"go.infratographer.com/metadata-api/db"
 	ent "go.infratographer.com/metadata-api/internal/ent/generated"
 	"go.infratographer.com/metadata-api/internal/graphapi"
 	"go.infratographer.com/metadata-api/internal/graphclient"
@@ -99,21 +99,7 @@ func setupDB() {
 		errPanic("failed creating db scema", c.Schema.Create(ctx))
 	case dialect.Postgres:
 		log.Println("Running database migrations")
-
-		cmd := exec.Command("atlas", "migrate", "apply",
-			"--dir", "file://../../db/migrations",
-			"--url", uri,
-		)
-
-		// write all output to stdout and stderr as it comes through
-		var stdBuffer bytes.Buffer
-		mw := io.MultiWriter(os.Stdout, &stdBuffer)
-
-		cmd.Stdout = mw
-		cmd.Stderr = mw
-
-		// Execute the command
-		errPanic("atlas returned an error running database migrations", cmd.Run())
+		goosex.MigrateUp(uri, db.Migrations)
 	}
 
 	EntClient = c

@@ -7,12 +7,16 @@ import (
 	"syscall"
 
 	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/mattn/go-sqlite3" // sqlite3 driver
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.infratographer.com/x/crdbx"
+	"go.infratographer.com/x/echojwtx"
 	"go.infratographer.com/x/echox"
 	"go.infratographer.com/x/loggingx"
+	"go.infratographer.com/x/otelx"
 	"go.infratographer.com/x/versionx"
 	"go.uber.org/zap"
 
@@ -50,6 +54,7 @@ func init() {
 	rootCmd.AddCommand(serveCmd)
 
 	echox.MustViperFlags(viper.GetViper(), serveCmd.Flags(), defaultAPIListenAddr)
+	echojwtx.MustViperFlags(viper.GetViper(), serveCmd.Flags())
 
 	// only available as a CLI arg because it shouldn't be something that could accidentially end up in a config file or env var
 	serveCmd.Flags().BoolVar(&serveDevMode, "dev", false, "dev mode: enables playground, disables all auth checks, sets CORS to allow all, pretty logging, etc.")
@@ -67,7 +72,21 @@ func serve(ctx context.Context) error {
 		logger = loggingx.InitLogger(appName, config.AppConfig.Logging)
 	}
 
-	cOpts := []ent.Option{}
+	err := otelx.InitTracer(config.AppConfig.Tracing, appName, logger)
+	if err != nil {
+		logger.Fatalw("failed to initialize tracer", "error", err)
+	}
+
+	db, err := crdbx.NewDB(config.AppConfig.CRDB, config.AppConfig.Tracing.Enabled)
+	if err != nil {
+		logger.Fatalw("failed to connect to database", "error", err)
+	}
+
+	defer db.Close()
+
+	entDB := entsql.OpenDB(dialect.Postgres, db)
+
+	cOpts := []ent.Option{ent.Driver(entDB)}
 
 	if config.AppConfig.Logging.Debug {
 		cOpts = append(cOpts,
@@ -76,18 +95,7 @@ func serve(ctx context.Context) error {
 		)
 	}
 
-	client, err := ent.Open(dialect.SQLite, "file:metadata.sqlite?cache=shared&_fk=1", cOpts...)
-	if err != nil {
-		logger.Error("failed opening connection to sqlite", zap.Error(err))
-		return err
-	}
-	defer client.Close()
-
-	// Run the automatic migration tool to create all schema resources.
-	if err := client.Schema.Create(ctx); err != nil {
-		logger.Errorf("failed creating schema resources", zap.Error(err))
-		return err
-	}
+	client := ent.NewClient(cOpts...)
 
 	srv, err := echox.NewServer(logger.Desugar(), config.AppConfig.Server, versionx.BuildDetails())
 	if err != nil {
