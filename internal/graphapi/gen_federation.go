@@ -139,6 +139,38 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 
 				list[idx[i]] = entity
 				return nil
+			case "findMetadataByNodeID":
+				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["nodeID"])
+				if err != nil {
+					return fmt.Errorf(`unmarshalling param 0 for findMetadataByNodeID(): %w`, err)
+				}
+				entity, err := ec.resolvers.Entity().FindMetadataByNodeID(ctx, id0)
+				if err != nil {
+					return fmt.Errorf(`resolving Entity "Metadata": %w`, err)
+				}
+
+				list[idx[i]] = entity
+				return nil
+			}
+		case "Metadataable":
+			resolverName, err := entityResolverNameForMetadataable(ctx, rep)
+			if err != nil {
+				return fmt.Errorf(`finding resolver for Entity "Metadataable": %w`, err)
+			}
+			switch resolverName {
+
+			case "findMetadataableByID":
+				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
+				if err != nil {
+					return fmt.Errorf(`unmarshalling param 0 for findMetadataableByID(): %w`, err)
+				}
+				entity, err := ec.resolvers.Entity().FindMetadataableByID(ctx, id0)
+				if err != nil {
+					return fmt.Errorf(`resolving Entity "Metadataable": %w`, err)
+				}
+
+				list[idx[i]] = entity
+				return nil
 			}
 		case "ResourceProvider":
 			resolverName, err := entityResolverNameForResourceProvider(ctx, rep)
@@ -337,7 +369,37 @@ func entityResolverNameForMetadata(ctx context.Context, rep map[string]interface
 		}
 		return "findMetadataByID", nil
 	}
+	for {
+		var (
+			m   map[string]interface{}
+			val interface{}
+			ok  bool
+		)
+		_ = val
+		m = rep
+		if _, ok = m["nodeID"]; !ok {
+			break
+		}
+		return "findMetadataByNodeID", nil
+	}
 	return "", fmt.Errorf("%w for Metadata", ErrTypeNotFound)
+}
+
+func entityResolverNameForMetadataable(ctx context.Context, rep map[string]interface{}) (string, error) {
+	for {
+		var (
+			m   map[string]interface{}
+			val interface{}
+			ok  bool
+		)
+		_ = val
+		m = rep
+		if _, ok = m["id"]; !ok {
+			break
+		}
+		return "findMetadataableByID", nil
+	}
+	return "", fmt.Errorf("%w for Metadataable", ErrTypeNotFound)
 }
 
 func entityResolverNameForResourceProvider(ctx context.Context, rep map[string]interface{}) (string, error) {

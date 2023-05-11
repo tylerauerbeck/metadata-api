@@ -18,6 +18,8 @@ package generated
 
 import (
 	"context"
+	"database/sql/driver"
+	"fmt"
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent/dialect/sql"
@@ -27,6 +29,7 @@ import (
 	"go.infratographer.com/metadata-api/internal/ent/generated/metadata"
 	"go.infratographer.com/metadata-api/internal/ent/generated/status"
 	"go.infratographer.com/metadata-api/internal/ent/generated/statusnamespace"
+	"go.infratographer.com/x/gidx"
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
@@ -304,8 +307,80 @@ func (m *MetadataQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				path  = append(path, alias)
 				query = (&AnnotationClient{config: m.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			args := newAnnotationPaginateArgs(fieldArgs(ctx, new(AnnotationWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newAnnotationPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
 				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					m.loadTotal = append(m.loadTotal, func(ctx context.Context, nodes []*Metadata) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID gidx.PrefixedID `sql:"metadata_id"`
+							Count  int             `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(metadata.AnnotationsColumn), ids...))
+						})
+						if err := query.GroupBy(metadata.AnnotationsColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[gidx.PrefixedID]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
+						}
+						return nil
+					})
+				} else {
+					m.loadTotal = append(m.loadTotal, func(_ context.Context, nodes []*Metadata) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.Annotations)
+							if nodes[i].Edges.totalCount[0] == nil {
+								nodes[i].Edges.totalCount[0] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[0][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "Annotation")...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(metadata.AnnotationsColumn, limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			m.WithNamedAnnotations(alias, func(wq *AnnotationQuery) {
 				*wq = *query
@@ -316,8 +391,80 @@ func (m *MetadataQuery) collectField(ctx context.Context, opCtx *graphql.Operati
 				path  = append(path, alias)
 				query = (&StatusClient{config: m.config}).Query()
 			)
-			if err := query.collectField(ctx, opCtx, field, path, satisfies...); err != nil {
+			args := newStatusPaginateArgs(fieldArgs(ctx, new(StatusWhereInput), path...))
+			if err := validateFirstLast(args.first, args.last); err != nil {
+				return fmt.Errorf("validate first and last in path %q: %w", path, err)
+			}
+			pager, err := newStatusPager(args.opts, args.last != nil)
+			if err != nil {
+				return fmt.Errorf("create new pager in path %q: %w", path, err)
+			}
+			if query, err = pager.applyFilter(query); err != nil {
 				return err
+			}
+			ignoredEdges := !hasCollectedField(ctx, append(path, edgesField)...)
+			if hasCollectedField(ctx, append(path, totalCountField)...) || hasCollectedField(ctx, append(path, pageInfoField)...) {
+				hasPagination := args.after != nil || args.first != nil || args.before != nil || args.last != nil
+				if hasPagination || ignoredEdges {
+					query := query.Clone()
+					m.loadTotal = append(m.loadTotal, func(ctx context.Context, nodes []*Metadata) error {
+						ids := make([]driver.Value, len(nodes))
+						for i := range nodes {
+							ids[i] = nodes[i].ID
+						}
+						var v []struct {
+							NodeID gidx.PrefixedID `sql:"metadata_id"`
+							Count  int             `sql:"count"`
+						}
+						query.Where(func(s *sql.Selector) {
+							s.Where(sql.InValues(s.C(metadata.StatusesColumn), ids...))
+						})
+						if err := query.GroupBy(metadata.StatusesColumn).Aggregate(Count()).Scan(ctx, &v); err != nil {
+							return err
+						}
+						m := make(map[gidx.PrefixedID]int, len(v))
+						for i := range v {
+							m[v[i].NodeID] = v[i].Count
+						}
+						for i := range nodes {
+							n := m[nodes[i].ID]
+							if nodes[i].Edges.totalCount[1] == nil {
+								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[1][alias] = n
+						}
+						return nil
+					})
+				} else {
+					m.loadTotal = append(m.loadTotal, func(_ context.Context, nodes []*Metadata) error {
+						for i := range nodes {
+							n := len(nodes[i].Edges.Statuses)
+							if nodes[i].Edges.totalCount[1] == nil {
+								nodes[i].Edges.totalCount[1] = make(map[string]int)
+							}
+							nodes[i].Edges.totalCount[1][alias] = n
+						}
+						return nil
+					})
+				}
+			}
+			if ignoredEdges || (args.first != nil && *args.first == 0) || (args.last != nil && *args.last == 0) {
+				continue
+			}
+			if query, err = pager.applyCursors(query, args.after, args.before); err != nil {
+				return err
+			}
+			path = append(path, edgesField, nodeField)
+			if field := collectedField(ctx, path...); field != nil {
+				if err := query.collectField(ctx, opCtx, *field, path, mayAddCondition(satisfies, "Status")...); err != nil {
+					return err
+				}
+			}
+			if limit := paginateLimit(args.first, args.last); limit > 0 {
+				modify := limitRows(metadata.StatusesColumn, limit, pager.orderExpr(query))
+				query.modifiers = append(query.modifiers, modify)
+			} else {
+				query = pager.applyOrder(query)
 			}
 			m.WithNamedStatuses(alias, func(wq *StatusQuery) {
 				*wq = *query

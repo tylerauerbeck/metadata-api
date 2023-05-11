@@ -6,9 +6,12 @@ package graphapi
 
 import (
 	"context"
+	"fmt"
+
+	"go.infratographer.com/x/gidx"
 
 	"go.infratographer.com/metadata-api/internal/ent/generated"
-	"go.infratographer.com/x/gidx"
+	"go.infratographer.com/metadata-api/internal/ent/generated/metadata"
 )
 
 // FindAnnotationByID is the resolver for the findAnnotationByID field.
@@ -24,6 +27,16 @@ func (r *entityResolver) FindAnnotationNamespaceByID(ctx context.Context, id gid
 // FindMetadataByID is the resolver for the findMetadataByID field.
 func (r *entityResolver) FindMetadataByID(ctx context.Context, id gidx.PrefixedID) (*generated.Metadata, error) {
 	return r.client.Metadata.Get(ctx, id)
+}
+
+// FindMetadataByNodeID is the resolver for the findMetadataByNodeID field.
+func (r *entityResolver) FindMetadataByNodeID(ctx context.Context, nodeID gidx.PrefixedID) (*generated.Metadata, error) {
+	return r.client.Metadata.Query().Where(metadata.NodeID(nodeID)).First(ctx)
+}
+
+// FindMetadataableByID is the resolver for the findMetadataableByID field.
+func (r *entityResolver) FindMetadataableByID(ctx context.Context, id gidx.PrefixedID) (*Metadataable, error) {
+	panic(fmt.Errorf("not implemented: metadata-api doesn't implement any types that support metadata"))
 }
 
 // FindResourceProviderByID is the resolver for the findResourceProviderByID field.

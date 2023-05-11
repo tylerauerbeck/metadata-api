@@ -1,12 +1,14 @@
-# type Metadata {
-#   annotations(): [Annotation!]!
-#   statuses: [Status!]!
-# }
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@interfaceObject", "@external", "@shareable"]
+  )
+directive @interfaceObject on OBJECT
 
-# interface Metadataable {
-#   id: ID!
-#   metadata: Metadata!
-# }
+type Metadataable @key(fields: "id") @interfaceObject {
+  id: ID!
+  metadata: Metadata!
+}
 
 extend type Query {
   """
@@ -18,4 +20,8 @@ extend type Query {
     """
     nodeID: ID!
   ): Metadata
+}
+
+extend type Metadata {
+  node: Metadataable!
 }

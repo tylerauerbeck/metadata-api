@@ -50,28 +50,46 @@ func (an *AnnotationNamespace) Annotations(ctx context.Context) (result []*Annot
 	return result, err
 }
 
-func (m *Metadata) Annotations(ctx context.Context) (result []*Annotation, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = m.NamedAnnotations(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = m.Edges.AnnotationsOrErr()
+func (m *Metadata) Annotations(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *AnnotationOrder, where *AnnotationWhereInput,
+) (*AnnotationConnection, error) {
+	opts := []AnnotationPaginateOption{
+		WithAnnotationOrder(orderBy),
+		WithAnnotationFilter(where.Filter),
 	}
-	if IsNotLoaded(err) {
-		result, err = m.QueryAnnotations().All(ctx)
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := m.Edges.totalCount[0][alias]
+	if nodes, err := m.NamedAnnotations(alias); err == nil || hasTotalCount {
+		pager, err := newAnnotationPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &AnnotationConnection{Edges: []*AnnotationEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
 	}
-	return result, err
+	return m.QueryAnnotations().Paginate(ctx, after, first, before, last, opts...)
 }
 
-func (m *Metadata) Statuses(ctx context.Context) (result []*Status, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = m.NamedStatuses(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = m.Edges.StatusesOrErr()
+func (m *Metadata) Statuses(
+	ctx context.Context, after *Cursor, first *int, before *Cursor, last *int, orderBy *StatusOrder, where *StatusWhereInput,
+) (*StatusConnection, error) {
+	opts := []StatusPaginateOption{
+		WithStatusOrder(orderBy),
+		WithStatusFilter(where.Filter),
 	}
-	if IsNotLoaded(err) {
-		result, err = m.QueryStatuses().All(ctx)
+	alias := graphql.GetFieldContext(ctx).Field.Alias
+	totalCount, hasTotalCount := m.Edges.totalCount[1][alias]
+	if nodes, err := m.NamedStatuses(alias); err == nil || hasTotalCount {
+		pager, err := newStatusPager(opts, last != nil)
+		if err != nil {
+			return nil, err
+		}
+		conn := &StatusConnection{Edges: []*StatusEdge{}, TotalCount: totalCount}
+		conn.build(nodes, pager, after, first, before, last)
+		return conn, nil
 	}
-	return result, err
+	return m.QueryStatuses().Paginate(ctx, after, first, before, last, opts...)
 }
 
 func (s *Status) Namespace(ctx context.Context) (*StatusNamespace, error) {

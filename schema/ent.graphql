@@ -211,15 +211,51 @@ https://relay.dev/graphql/connections.htm#sec-Cursor
 scalar Cursor
 """A valid JSON string."""
 scalar JSON
-type Metadata implements Node @key(fields: "id") {
+type Metadata implements Node @key(fields: "id") @key(fields: "nodeID") {
   """ID for the metadata."""
   id: ID!
   createdAt: Time!
   updatedAt: Time!
   """ID of the node for this metadata"""
   nodeID: ID!
-  annotations: [Annotation!]
-  statuses: [Status!]
+  annotations(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Annotations returned from the connection."""
+    orderBy: AnnotationOrder
+
+    """Filtering options for Annotations returned from the connection."""
+    where: AnnotationWhereInput
+  ): AnnotationConnection!
+  statuses(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for StatusSlice returned from the connection."""
+    orderBy: StatusOrder
+
+    """Filtering options for StatusSlice returned from the connection."""
+    where: StatusWhereInput
+  ): StatusConnection!
 }
 """A connection to a list of items."""
 type MetadataConnection {
@@ -310,7 +346,7 @@ enum OrderDirection {
 Information about pagination in a connection.
 https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
 """
-type PageInfo {
+type PageInfo @shareable {
   """When paginating forwards, are there more items?"""
   hasNextPage: Boolean!
   """When paginating backwards, are there more items?"""

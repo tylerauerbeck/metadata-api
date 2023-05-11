@@ -59,6 +59,13 @@ type AnnotationUpdateResponse struct {
 	Annotation *generated.Annotation `json:"annotation"`
 }
 
+type Metadataable struct {
+	ID       gidx.PrefixedID     `json:"id"`
+	Metadata *generated.Metadata `json:"metadata"`
+}
+
+func (Metadataable) IsEntity() {}
+
 type ResourceProvider struct {
 	ID               gidx.PrefixedID                      `json:"id"`
 	StatusNamespaces *generated.StatusNamespaceConnection `json:"statusNamespaces"`

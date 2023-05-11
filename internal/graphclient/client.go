@@ -96,8 +96,10 @@ type AnnotationUpdate struct {
 		Annotation struct {
 			ID       gidx.PrefixedID "json:\"id\" graphql:\"id\""
 			Metadata struct {
-				ID     gidx.PrefixedID "json:\"id\" graphql:\"id\""
-				NodeID gidx.PrefixedID "json:\"nodeID\" graphql:\"nodeID\""
+				ID   gidx.PrefixedID "json:\"id\" graphql:\"id\""
+				Node struct {
+					ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
+				} "json:\"node\" graphql:\"node\""
 			} "json:\"metadata\" graphql:\"metadata\""
 			Namespace struct {
 				ID      gidx.PrefixedID "json:\"id\" graphql:\"id\""
@@ -184,8 +186,10 @@ type StatusUpdate struct {
 		Status struct {
 			ID       gidx.PrefixedID "json:\"id\" graphql:\"id\""
 			Metadata struct {
-				ID     gidx.PrefixedID "json:\"id\" graphql:\"id\""
-				NodeID gidx.PrefixedID "json:\"nodeID\" graphql:\"nodeID\""
+				ID   gidx.PrefixedID "json:\"id\" graphql:\"id\""
+				Node struct {
+					ID gidx.PrefixedID "json:\"id\" graphql:\"id\""
+				} "json:\"node\" graphql:\"node\""
 			} "json:\"metadata\" graphql:\"metadata\""
 			Namespace struct {
 				ID      gidx.PrefixedID "json:\"id\" graphql:\"id\""
@@ -307,7 +311,9 @@ const AnnotationUpdateDocument = `mutation AnnotationUpdate ($input: AnnotationU
 			id
 			metadata {
 				id
-				nodeID
+				node {
+					id
+				}
 			}
 			namespace {
 				id
@@ -508,7 +514,9 @@ const StatusUpdateDocument = `mutation StatusUpdate ($input: StatusUpdateInput!)
 			id
 			metadata {
 				id
-				nodeID
+				node {
+					id
+				}
 			}
 			namespace {
 				id

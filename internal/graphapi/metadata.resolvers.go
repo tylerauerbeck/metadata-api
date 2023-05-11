@@ -12,6 +12,11 @@ import (
 	"go.infratographer.com/x/gidx"
 )
 
+// Node is the resolver for the node field.
+func (r *metadataResolver) Node(ctx context.Context, obj *generated.Metadata) (*Metadataable, error) {
+	return &Metadataable{ID: obj.NodeID}, nil
+}
+
 // Metadata is the resolver for the Metadata field.
 func (r *queryResolver) Metadata(ctx context.Context, nodeID gidx.PrefixedID) (*generated.Metadata, error) {
 	// TODO: authz check here

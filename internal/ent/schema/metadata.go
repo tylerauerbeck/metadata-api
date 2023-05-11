@@ -55,12 +55,14 @@ func (Metadata) Edges() []ent.Edge {
 			Ref("metadata").
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
 			),
 
 		edge.From("statuses", Status.Type).
 			Ref("metadata").
 			Annotations(
 				entgql.Skip(entgql.SkipMutationCreateInput, entgql.SkipMutationUpdateInput),
+				entgql.RelayConnection(),
 			),
 	}
 }
@@ -69,6 +71,7 @@ func (Metadata) Edges() []ent.Edge {
 func (Metadata) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
+		entx.GraphKeyDirective("nodeID"),
 		entgql.RelayConnection(),
 	}
 }

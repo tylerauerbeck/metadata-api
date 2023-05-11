@@ -4,7 +4,9 @@ mutation AnnotationUpdate($input: AnnotationUpdateInput!) {
       id
       metadata {
         id
-        nodeID
+        node {
+          id
+        }
       }
       namespace {
         id

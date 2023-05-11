@@ -9,6 +9,9 @@ func (r *Resolver) AnnotationNamespace() AnnotationNamespaceResolver {
 	return &annotationNamespaceResolver{r}
 }
 
+// Metadata returns MetadataResolver implementation.
+func (r *Resolver) Metadata() MetadataResolver { return &metadataResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
@@ -16,5 +19,6 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 func (r *Resolver) StatusNamespace() StatusNamespaceResolver { return &statusNamespaceResolver{r} }
 
 type annotationNamespaceResolver struct{ *Resolver }
+type metadataResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type statusNamespaceResolver struct{ *Resolver }

@@ -293,6 +293,8 @@ type Entity0 struct {
 	FindAnnotationByID          Annotation          `json:"findAnnotationByID"`
 	FindAnnotationNamespaceByID AnnotationNamespace `json:"findAnnotationNamespaceByID"`
 	FindMetadataByID            Metadata            `json:"findMetadataByID"`
+	FindMetadataByNodeID        Metadata            `json:"findMetadataByNodeID"`
+	FindMetadataableByID        Metadataable        `json:"findMetadataableByID"`
 	FindResourceProviderByID    ResourceProvider    `json:"findResourceProviderByID"`
 	FindStatusByID              Status              `json:"findStatusByID"`
 	FindStatusNamespaceByID     StatusNamespace     `json:"findStatusNamespaceByID"`
@@ -301,13 +303,12 @@ type Entity0 struct {
 
 type Metadata struct {
 	// ID for the metadata.
-	ID        gidx.PrefixedID `json:"id"`
-	CreatedAt time.Time       `json:"createdAt"`
-	UpdatedAt time.Time       `json:"updatedAt"`
-	// ID of the node for this metadata
-	NodeID      gidx.PrefixedID `json:"nodeID"`
-	Annotations []*Annotation   `json:"annotations,omitempty"`
-	Statuses    []*Status       `json:"statuses,omitempty"`
+	ID          gidx.PrefixedID      `json:"id"`
+	CreatedAt   time.Time            `json:"createdAt"`
+	UpdatedAt   time.Time            `json:"updatedAt"`
+	Annotations AnnotationConnection `json:"annotations"`
+	Statuses    StatusConnection     `json:"statuses"`
+	Node        *Metadataable        `json:"node"`
 }
 
 func (Metadata) IsNode() {}
@@ -383,6 +384,13 @@ type MetadataWhereInput struct {
 	HasStatuses     *bool               `json:"hasStatuses,omitempty"`
 	HasStatusesWith []*StatusWhereInput `json:"hasStatusesWith,omitempty"`
 }
+
+type Metadataable struct {
+	ID       gidx.PrefixedID `json:"id"`
+	Metadata *Metadata       `json:"metadata"`
+}
+
+func (Metadataable) IsEntity() {}
 
 // Information about pagination in a connection.
 // https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo

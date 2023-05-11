@@ -4,7 +4,9 @@ mutation StatusUpdate($input: StatusUpdateInput!) {
       id
       metadata {
         id
-        nodeID
+        node {
+          id
+        }
       }
       namespace {
         id
