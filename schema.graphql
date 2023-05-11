@@ -1,0 +1,987 @@
+extend type Mutation {
+  """
+  Set Annotation data for a node and annotation namespace to the given value.
+
+  annotationUpdate is an Upsert operation and will create the annotation if it doesn't already exists.
+  """
+  annotationUpdate(input: AnnotationUpdateInput!): AnnotationUpdateResponse!
+  """
+  Delete Annotation for a node and annotation namespace.
+  """
+  annotationDelete(input: AnnotationDeleteInput!): AnnotationDeleteResponse!
+}
+
+"""
+Input information to update an annotation.
+"""
+input AnnotationUpdateInput {
+  """
+  The node ID for this annotation.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this annotation.
+  """
+  namespaceID: ID!
+  """
+  The data to save in this annotation.
+  """
+  data: JSON!
+}
+
+"""
+Return response from annotationUpdate
+"""
+type AnnotationUpdateResponse {
+  """
+  The set annotation.
+  """
+  annotation: Annotation!
+}
+
+"""
+Input information to delete an annotation.
+"""
+input AnnotationDeleteInput {
+  """
+  The node ID for this annotation.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this annotation.
+  """
+  namespaceID: ID!
+}
+
+"""
+Return response from annotationDelete
+"""
+type AnnotationDeleteResponse {
+  """
+  The ID of the unset annotation.
+  """
+  deletedID: ID!
+}
+extend type Mutation {
+  """
+  Create an annotation namespace.
+  """
+  annotationNamespaceCreate(
+    input: CreateAnnotationNamespaceInput!
+  ): AnnotationNamespaceCreatePayload!
+
+  """
+  Delete an annotation namespace.
+
+  Setting force allowed deleting an annotation namespace even if annotations are using it.
+  WARNING: Annotation data will be lost permenantly!
+  """
+  annotationNamespaceDelete(
+    """
+    The ID of the annotation namespace to be deleted.
+    """
+    id: ID!
+    """
+    Delete the annotation namespace even if annotations are using it. WARNING!! The annotations will also be deleted!
+    """
+    force: Boolean! = false
+  ): AnnotationNamespaceDeletePayload!
+
+  """
+  Update an annotation namespace.
+  """
+  annotationNamespaceUpdate(
+    id: ID!
+    input: UpdateAnnotationNamespaceInput!
+  ): AnnotationNamespaceUpdatePayload!
+}
+
+"""
+Return response from annotationNamespaceCreate
+"""
+type AnnotationNamespaceCreatePayload {
+  """
+  The created annotation namespace.
+  """
+  annotationNamespace: AnnotationNamespace!
+}
+
+"""
+Return response from annotationNamespaceDelete
+"""
+type AnnotationNamespaceDeletePayload {
+  """
+  The ID of the deleted annotation namespace.
+  """
+  deletedID: ID!
+  """
+  The count of annotations deleted
+  """
+  annotationDeletedCount: Int!
+}
+
+"""
+Return response from annotationNamespaceUpdate
+"""
+type AnnotationNamespaceUpdatePayload {
+  """
+  The updated annotation namespace.
+  """
+  annotationNamespace: AnnotationNamespace!
+}
+directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
+type Annotation implements Node @key(fields: "id") {
+  """ID for the annotation."""
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  """ID of the metadata of this annotation"""
+  metadataID: ID!
+  """JSON formatted data of this annotation."""
+  data: JSON!
+  namespace: AnnotationNamespace!
+  metadata: Metadata!
+}
+"""A connection to a list of items."""
+type AnnotationConnection {
+  """A list of edges."""
+  edges: [AnnotationEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type AnnotationEdge {
+  """The item at the end of the edge."""
+  node: Annotation
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+type AnnotationNamespace implements Node @key(fields: "id") {
+  """The ID for the annotation namespace."""
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  """The name of the annotation namespace."""
+  name: String!
+  """Flag for if this namespace is private."""
+  private: Boolean!
+  annotations: [Annotation!]
+}
+"""A connection to a list of items."""
+type AnnotationNamespaceConnection {
+  """A list of edges."""
+  edges: [AnnotationNamespaceEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type AnnotationNamespaceEdge {
+  """The item at the end of the edge."""
+  node: AnnotationNamespace
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""Ordering options for AnnotationNamespace connections"""
+input AnnotationNamespaceOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order AnnotationNamespaces."""
+  field: AnnotationNamespaceOrderField!
+}
+"""Properties by which AnnotationNamespace connections can be ordered."""
+enum AnnotationNamespaceOrderField {
+  ID
+  CREATED_AT
+  UPDATED_AT
+  NAME
+  TENANT
+  PRIVATE
+}
+"""
+AnnotationNamespaceWhereInput is used for filtering AnnotationNamespace objects.
+Input was generated by ent.
+"""
+input AnnotationNamespaceWhereInput {
+  not: AnnotationNamespaceWhereInput
+  and: [AnnotationNamespaceWhereInput!]
+  or: [AnnotationNamespaceWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """created_at field predicates"""
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """updated_at field predicates"""
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """name field predicates"""
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameEqualFold: String
+  nameContainsFold: String
+  """annotations edge predicates"""
+  hasAnnotations: Boolean
+  hasAnnotationsWith: [AnnotationWhereInput!]
+}
+"""Ordering options for Annotation connections"""
+input AnnotationOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order Annotations."""
+  field: AnnotationOrderField!
+}
+"""Properties by which Annotation connections can be ordered."""
+enum AnnotationOrderField {
+  CREATED_AT
+  UPDATED_AT
+}
+"""
+AnnotationWhereInput is used for filtering Annotation objects.
+Input was generated by ent.
+"""
+input AnnotationWhereInput {
+  not: AnnotationWhereInput
+  and: [AnnotationWhereInput!]
+  or: [AnnotationWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """created_at field predicates"""
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """updated_at field predicates"""
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """namespace edge predicates"""
+  hasNamespace: Boolean
+  hasNamespaceWith: [AnnotationNamespaceWhereInput!]
+  """metadata edge predicates"""
+  hasMetadata: Boolean
+  hasMetadataWith: [MetadataWhereInput!]
+}
+"""Input information to create an annotation namespace."""
+input CreateAnnotationNamespaceInput {
+  """The name of the annotation namespace."""
+  name: String!
+  """The ID for the tenant for this annotation namespace."""
+  tenantID: ID!
+  """Flag for if this namespace is private."""
+  private: Boolean
+}
+"""Input information to create a status namespace."""
+input CreateStatusInput {
+  source: String!
+  """JSON formatted data of this annotation."""
+  data: JSON!
+  namespaceID: ID!
+  metadataID: ID!
+}
+"""Input information to create a status namespace."""
+input CreateStatusNamespaceInput {
+  """The name of the status namespace."""
+  name: String!
+  """The ID for the tenant for this status namespace."""
+  resourceProviderID: ID!
+  """Flag for if this namespace is private."""
+  private: Boolean
+}
+"""
+Define a Relay Cursor type:
+https://relay.dev/graphql/connections.htm#sec-Cursor
+"""
+scalar Cursor
+"""A valid JSON string."""
+scalar JSON
+type Metadata implements Node @key(fields: "id") @key(fields: "nodeID") {
+  """ID for the metadata."""
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  """ID of the node for this metadata"""
+  nodeID: ID!
+  annotations(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Annotations returned from the connection."""
+    orderBy: AnnotationOrder
+
+    """Filtering options for Annotations returned from the connection."""
+    where: AnnotationWhereInput
+  ): AnnotationConnection!
+  statuses(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: Cursor
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the elements in the list that come before the specified cursor."""
+    before: Cursor
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for StatusSlice returned from the connection."""
+    orderBy: StatusOrder
+
+    """Filtering options for StatusSlice returned from the connection."""
+    where: StatusWhereInput
+  ): StatusConnection!
+}
+"""A connection to a list of items."""
+type MetadataConnection {
+  """A list of edges."""
+  edges: [MetadataEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type MetadataEdge {
+  """The item at the end of the edge."""
+  node: Metadata
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""Ordering options for Metadata connections"""
+input MetadataOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order MetadataSlice."""
+  field: MetadataOrderField!
+}
+"""Properties by which Metadata connections can be ordered."""
+enum MetadataOrderField {
+  CREATED_AT
+  UPDATED_AT
+}
+"""
+MetadataWhereInput is used for filtering Metadata objects.
+Input was generated by ent.
+"""
+input MetadataWhereInput {
+  not: MetadataWhereInput
+  and: [MetadataWhereInput!]
+  or: [MetadataWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """created_at field predicates"""
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """updated_at field predicates"""
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """annotations edge predicates"""
+  hasAnnotations: Boolean
+  hasAnnotationsWith: [AnnotationWhereInput!]
+  """statuses edge predicates"""
+  hasStatuses: Boolean
+  hasStatusesWith: [StatusWhereInput!]
+}
+"""
+An object with an ID.
+Follows the [Relay Global Object Identification Specification](https://relay.dev/graphql/objectidentification.htm)
+"""
+interface Node {
+  """The id of the object."""
+  id: ID!
+}
+"""Possible directions in which to order a list of items when provided an `orderBy` argument."""
+enum OrderDirection {
+  """Specifies an ascending order for a given `orderBy` argument."""
+  ASC
+  """Specifies a descending order for a given `orderBy` argument."""
+  DESC
+}
+"""
+Information about pagination in a connection.
+https://relay.dev/graphql/connections.htm#sec-undefined.PageInfo
+"""
+type PageInfo @shareable {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+  """When paginating backwards, the cursor to continue."""
+  startCursor: Cursor
+  """When paginating forwards, the cursor to continue."""
+  endCursor: Cursor
+}
+type Query
+type Status implements Node @key(fields: "id") {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  """ID of the metadata of this status"""
+  metadataID: ID!
+  statusNamespaceID: ID!
+  source: String!
+  """JSON formatted data of this annotation."""
+  data: JSON!
+  namespace: StatusNamespace!
+  metadata: Metadata!
+}
+"""A connection to a list of items."""
+type StatusConnection {
+  """A list of edges."""
+  edges: [StatusEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type StatusEdge {
+  """The item at the end of the edge."""
+  node: Status
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+type StatusNamespace implements Node @key(fields: "id") {
+  """The ID for the status namespace."""
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  """The name of the status namespace."""
+  name: String!
+  """Flag for if this namespace is private."""
+  private: Boolean!
+}
+"""A connection to a list of items."""
+type StatusNamespaceConnection {
+  """A list of edges."""
+  edges: [StatusNamespaceEdge]
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+"""An edge in a connection."""
+type StatusNamespaceEdge {
+  """The item at the end of the edge."""
+  node: StatusNamespace
+  """A cursor for use in pagination."""
+  cursor: Cursor!
+}
+"""Ordering options for StatusNamespace connections"""
+input StatusNamespaceOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order StatusNamespaces."""
+  field: StatusNamespaceOrderField!
+}
+"""Properties by which StatusNamespace connections can be ordered."""
+enum StatusNamespaceOrderField {
+  ID
+  CREATED_AT
+  UPDATED_AT
+  NAME
+  TENANT
+  PRIVATE
+}
+"""
+StatusNamespaceWhereInput is used for filtering StatusNamespace objects.
+Input was generated by ent.
+"""
+input StatusNamespaceWhereInput {
+  not: StatusNamespaceWhereInput
+  and: [StatusNamespaceWhereInput!]
+  or: [StatusNamespaceWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """created_at field predicates"""
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """updated_at field predicates"""
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """name field predicates"""
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameEqualFold: String
+  nameContainsFold: String
+}
+"""Ordering options for Status connections"""
+input StatusOrder {
+  """The ordering direction."""
+  direction: OrderDirection! = ASC
+  """The field by which to order StatusSlice."""
+  field: StatusOrderField!
+}
+"""Properties by which Status connections can be ordered."""
+enum StatusOrderField {
+  CREATED_AT
+  UPDATED_AT
+}
+"""
+StatusWhereInput is used for filtering Status objects.
+Input was generated by ent.
+"""
+input StatusWhereInput {
+  not: StatusWhereInput
+  and: [StatusWhereInput!]
+  or: [StatusWhereInput!]
+  """id field predicates"""
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """created_at field predicates"""
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """updated_at field predicates"""
+  updatedAt: Time
+  updatedAtNEQ: Time
+  updatedAtIn: [Time!]
+  updatedAtNotIn: [Time!]
+  updatedAtGT: Time
+  updatedAtGTE: Time
+  updatedAtLT: Time
+  updatedAtLTE: Time
+  """source field predicates"""
+  source: String
+  sourceNEQ: String
+  sourceIn: [String!]
+  sourceNotIn: [String!]
+  sourceGT: String
+  sourceGTE: String
+  sourceLT: String
+  sourceLTE: String
+  sourceContains: String
+  sourceHasPrefix: String
+  sourceHasSuffix: String
+  sourceEqualFold: String
+  sourceContainsFold: String
+  """namespace edge predicates"""
+  hasNamespace: Boolean
+  hasNamespaceWith: [StatusNamespaceWhereInput!]
+  """metadata edge predicates"""
+  hasMetadata: Boolean
+  hasMetadataWith: [MetadataWhereInput!]
+}
+"""The builtin Time type"""
+scalar Time
+"""Input information to update an annotation namespace."""
+input UpdateAnnotationNamespaceInput {
+  """The name of the annotation namespace."""
+  name: String
+  """Flag for if this namespace is private."""
+  private: Boolean
+}
+"""Input information to update a status namespace."""
+input UpdateStatusInput {
+  """JSON formatted data of this annotation."""
+  data: JSON
+  appendData: JSON
+}
+"""Input information to update a status namespace."""
+input UpdateStatusNamespaceInput {
+  """The name of the status namespace."""
+  name: String
+  """Flag for if this namespace is private."""
+  private: Boolean
+}
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@interfaceObject", "@external", "@shareable"]
+  )
+directive @interfaceObject on OBJECT
+
+type Metadataable @key(fields: "id") @interfaceObject {
+  id: ID!
+  metadata: Metadata!
+}
+
+extend type Query {
+  """
+  Lookup a metadata for a node by node ID.
+  """
+  metadata(
+    """
+    The ID of the node to get metadata for.
+    """
+    nodeID: ID!
+  ): Metadata
+}
+
+extend type Metadata {
+  node: Metadataable!
+}
+extend type ResourceProvider @key(fields: "id") {
+  id: ID! @external
+  statusNamespaces(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for StatusNamespaces returned from the connection.
+    """
+    orderBy: StatusNamespaceOrder
+
+    """
+    Filtering options for StatusNamespaces returned from the connection.
+    """
+    where: StatusNamespaceWhereInput
+  ): StatusNamespaceConnection! @goField(forceResolver: true)
+}
+
+extend type StatusNamespace {
+  """
+  The resource provider of the status namespace.
+  """
+  resourceProvider: ResourceProvider! @goField(forceResolver: true)
+}
+extend type Mutation {
+  """
+  Set Status data for a node and status namespace to the given value.
+
+  statusUpdate is an Upsert operation and will create the status if it doesn't already exists.
+  """
+  statusUpdate(input: StatusUpdateInput!): StatusUpdateResponse!
+  """
+  Delete Status for a node and status namespace.
+  """
+  statusDelete(input: StatusDeleteInput!): StatusDeleteResponse!
+}
+
+"""
+Input information to update an status.
+"""
+input StatusUpdateInput {
+  """
+  The node ID for this status.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this status.
+  """
+  namespaceID: ID!
+  """
+  The source for this status.
+  """
+  source: String!
+  """
+  The data to save in this status.
+  """
+  data: JSON!
+}
+
+"""
+Return response from statusUpdate
+"""
+type StatusUpdateResponse {
+  """
+  The set status.
+  """
+  status: Status!
+}
+
+"""
+Input information to delete an status.
+"""
+input StatusDeleteInput {
+  """
+  The node ID for this status.
+  """
+  nodeID: ID!
+  """
+  The namespace ID for this status.
+  """
+  namespaceID: ID!
+  """
+  The source for this status.
+  """
+  source: String!
+}
+
+"""
+Return response from statusDelete
+"""
+type StatusDeleteResponse {
+  """
+  The ID of the unset status.
+  """
+  deletedID: ID!
+}
+extend type Mutation {
+  """
+  Create an status namespace.
+  """
+  statusNamespaceCreate(
+    input: CreateStatusNamespaceInput!
+  ): StatusNamespaceCreatePayload!
+
+  """
+  Delete an status namespace.
+
+  Setting force allowed deleting an status namespace even if statuss are using it.
+  WARNING: Status data will be lost permenantly!
+  """
+  statusNamespaceDelete(
+    """
+    The ID of the status namespace to be deleted.
+    """
+    id: ID!
+    """
+    Delete the status namespace even if statuss are using it. WARNING!! The statuss will also be deleted!
+    """
+    force: Boolean! = false
+  ): StatusNamespaceDeletePayload!
+
+  """
+  Update an status namespace.
+  """
+  statusNamespaceUpdate(
+    id: ID!
+    input: UpdateStatusNamespaceInput!
+  ): StatusNamespaceUpdatePayload!
+}
+
+"""
+Return response from statusNamespaceCreate
+"""
+type StatusNamespaceCreatePayload {
+  """
+  The created status namespace.
+  """
+  statusNamespace: StatusNamespace!
+}
+
+"""
+Return response from statusNamespaceDelete
+"""
+type StatusNamespaceDeletePayload {
+  """
+  The ID of the deleted status namespace.
+  """
+  deletedID: ID!
+  """
+  The count of statuss deleted
+  """
+  statusDeletedCount: Int!
+}
+
+"""
+Return response from statusNamespaceUpdate
+"""
+type StatusNamespaceUpdatePayload {
+  """
+  The updated status namespace.
+  """
+  statusNamespace: StatusNamespace!
+}
+extend type Tenant @key(fields: "id") {
+  id: ID! @external
+  annotationNamespaces(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for AnnotationNamespaces returned from the connection.
+    """
+    orderBy: AnnotationNamespaceOrder
+
+    """
+    Filtering options for AnnotationNamespaces returned from the connection.
+    """
+    where: AnnotationNamespaceWhereInput
+  ): AnnotationNamespaceConnection! @goField(forceResolver: true)
+  statusNamespaces(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Ordering options for StatusNamespaces returned from the connection.
+    """
+    orderBy: StatusNamespaceOrder
+
+    """
+    Filtering options for StatusNamespaces returned from the connection.
+    """
+    where: StatusNamespaceWhereInput
+  ): StatusNamespaceConnection! @goField(forceResolver: true)
+}
+
+extend type AnnotationNamespace {
+  """
+  The tenant of the annotation namespace.
+  """
+  tenant: Tenant! @goField(forceResolver: true)
+}
+
+extend type StatusNamespace {
+  """
+  The tenant of the annotation namespace.
+  """
+  tenant: Tenant! @goField(forceResolver: true)
+}

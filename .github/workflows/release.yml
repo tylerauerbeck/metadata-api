@@ -34,6 +34,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - run: git fetch --force --tags
 
       - uses: actions/setup-go@v4

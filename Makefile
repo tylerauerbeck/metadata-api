@@ -86,3 +86,7 @@ kill-running: ## Kills the running binary from pid file
 	@echo --- Killing background binary...
 	@date --rfc-3339=seconds
 	@kill $$(cat ${PID_FILE})
+
+.PHONY: schema.graphql ## always rebuild the file even if it is there
+schema.graphql:
+	@cat schema/*.graphql > schema.graphql
