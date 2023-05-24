@@ -1,4 +1,4 @@
-name: Check GraphQL Schema
+name: Apollo Schema Check
 
 # Generally running a pull_request_target with secrets from the fork is risky, however we are only using the schema.graphql
 # file and not executing any code from the branch so it's safe here.
@@ -8,26 +8,25 @@ on:
       - main
 
 jobs:
-  build:
+  check:
+    name: check
     runs-on: ubuntu-latest
-    env:
-      APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
-      APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
-      APOLLO_VCS_REMOTE_URL: ${{ github.event.pull_request.head.repo.clone_url }}
-      APOLLO_VCS_BRANCH: ${{ github.event.pull_request.head.label }}
     steps:
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
 
-      - name: Install Rover
-        run: |
-          curl -sSL https://rover.apollo.dev/nix/latest | sh
-          echo "$HOME/.rover/bin" >> $GITHUB_PATH
-      - name: Run check against main
-        run: |
-          rover subgraph check --name metadata-api --schema schema.graphql infratographer@main --background
-      - name: Debug
-        run: |
-          echo "${{ github.event.pull_request}}"
+      - name: Subgraph Check
+        uses: iansu/apollo-schema-check-action@v2
+        with:
+          title: Metadata API
+          graph: infratographer
+          variant: main
+          localSchemaFile: schema.graphql
+          serviceName: metadata-api
+          validationPeriod: P2W
+          key: ${{ secrets.APOLLO_KEY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
+          APOLLO_VCS_BRANCH: ${{ github.event.pull_request.head.label }}
