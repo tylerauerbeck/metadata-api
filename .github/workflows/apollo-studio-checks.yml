@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
-      # APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
-      # APOLLO_VCS_REMOTE_URL: ${{ github.event.pull_request.head.repo.git_url }}
-      # APOLLO_VCS_BRANCH: ${{ github.event.pull_request.head.label }}
+      APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
+      APOLLO_VCS_REMOTE_URL: ${{ github.event.pull_request.head.repo.clone_url }}
+      APOLLO_VCS_BRANCH: ${{ github.event.pull_request.head.label }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -28,3 +28,6 @@ jobs:
       - name: Run check against main
         run: |
           rover subgraph check --name metadata-api --schema schema.graphql infratographer@main --background
+      - name: Debug
+        run: |
+          echo "${{ github.event.pull_request}}"
