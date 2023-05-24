@@ -32,7 +32,7 @@ jobs:
           rover subgraph check --name metadata-api --schema schema.graphql infratographer@main --format json --output subgraph-check.json
       - name: Generate report comment
         run: |
-          RESULTS_FILE=failure.json
+          RESULTS_FILE=subgraph-check.json
           echo -e "#### GraphQL Schema Check\n" > comment.txt
 
           print_details () {
