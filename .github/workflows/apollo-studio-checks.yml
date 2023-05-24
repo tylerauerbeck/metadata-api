@@ -8,11 +8,11 @@ on:
       - main
 
 jobs:
-  permissions:
-    pull-requests: write
   check:
     name: check
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     env:
       APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
       APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
