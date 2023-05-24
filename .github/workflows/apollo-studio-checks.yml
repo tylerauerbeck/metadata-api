@@ -1,48 +1,28 @@
 name: Check GraphQL Schema
 
-# Controls when the action will run. Triggers the workflow on push or pull request events
+# Generally running a pull_request_target with secrets from the fork is risky, however we are only using the schema.graphql
+# file and not executing any code from the branch so it's safe here.
 on:
-  workflow_run:
-    workflows: ["Save graphql.schema on PR"]
-    types:
-      - completed
+  pull_request_target:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
     env:
       APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
-      APOLLO_VCS_COMMIT: ${{ github.event.pull_request_target.head.sha }}
+      APOLLO_VCS_COMMIT: ${{ github.event.pull_request.head.sha }}
     steps:
-      - name: 'Download graphql from PR'
-        uses: actions/github-script@v3.1.0
+      - uses: actions/checkout@v3
         with:
-          script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{github.event.workflow_run.id }},
-            });
-            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "pr"
-            })[0];
-            var download = await github.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
-            });
-            var fs = require('fs');
-            fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
-      - run: unzip pr.zip
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Install Rover
         run: |
           curl -sSL https://rover.apollo.dev/nix/latest | sh
           echo "$HOME/.rover/bin" >> $GITHUB_PATH
-      - name: Run check against infratographer@main
+      - name: Run check against main
         run: |
+          rover config whoami
           rover subgraph check --name metadata-api --schema schema.graphql infratographer@main
