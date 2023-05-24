@@ -25,5 +25,4 @@ jobs:
           echo "$HOME/.rover/bin" >> $GITHUB_PATH
       - name: Run check against main
         run: |
-          rover config whoami
           rover subgraph check --name metadata-api --schema schema.graphql infratographer@main --background
