@@ -1,12 +1,12 @@
 -- +goose Up
 -- create "annotation_namespaces" table
-CREATE TABLE "annotation_namespaces" ("id" character varying NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "name" character varying NOT NULL, "tenant_id" character varying NOT NULL, "private" boolean NOT NULL DEFAULT false, PRIMARY KEY ("id"));
+CREATE TABLE "annotation_namespaces" ("id" character varying NOT NULL, "created_at" timestamptz NOT NULL, "updated_at" timestamptz NOT NULL, "name" character varying NOT NULL, "owner_id" character varying NOT NULL, "private" boolean NOT NULL DEFAULT false, PRIMARY KEY ("id"));
 -- create index "annotationnamespace_created_at" to table: "annotation_namespaces"
 CREATE INDEX "annotationnamespace_created_at" ON "annotation_namespaces" ("created_at");
--- create index "annotationnamespace_tenant_id" to table: "annotation_namespaces"
-CREATE INDEX "annotationnamespace_tenant_id" ON "annotation_namespaces" ("tenant_id");
--- create index "annotationnamespace_tenant_id_name" to table: "annotation_namespaces"
-CREATE UNIQUE INDEX "annotationnamespace_tenant_id_name" ON "annotation_namespaces" ("tenant_id", "name");
+-- create index "annotationnamespace_owner_id" to table: "annotation_namespaces"
+CREATE INDEX "annotationnamespace_owner_id" ON "annotation_namespaces" ("owner_id");
+-- create index "annotationnamespace_owner_id_name" to table: "annotation_namespaces"
+CREATE UNIQUE INDEX "annotationnamespace_owner_id_name" ON "annotation_namespaces" ("owner_id", "name");
 -- create index "annotationnamespace_updated_at" to table: "annotation_namespaces"
 CREATE INDEX "annotationnamespace_updated_at" ON "annotation_namespaces" ("updated_at");
 -- create "metadata" table
@@ -93,10 +93,10 @@ DROP INDEX "metadata_created_at";
 DROP TABLE "metadata";
 -- reverse: create index "annotationnamespace_updated_at" to table: "annotation_namespaces"
 DROP INDEX "annotationnamespace_updated_at";
--- reverse: create index "annotationnamespace_tenant_id_name" to table: "annotation_namespaces"
-DROP INDEX "annotationnamespace_tenant_id_name";
--- reverse: create index "annotationnamespace_tenant_id" to table: "annotation_namespaces"
-DROP INDEX "annotationnamespace_tenant_id";
+-- reverse: create index "annotationnamespace_owner_id_name" to table: "annotation_namespaces"
+DROP INDEX "annotationnamespace_owner_id_name";
+-- reverse: create index "annotationnamespace_owner_id" to table: "annotation_namespaces"
+DROP INDEX "annotationnamespace_owner_id";
 -- reverse: create index "annotationnamespace_created_at" to table: "annotation_namespaces"
 DROP INDEX "annotationnamespace_created_at";
 -- reverse: create "annotation_namespaces" table

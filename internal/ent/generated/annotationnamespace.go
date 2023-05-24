@@ -39,8 +39,8 @@ type AnnotationNamespace struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// The name of the annotation namespace.
 	Name string `json:"name,omitempty"`
-	// The ID for the tenant for this annotation namespace.
-	TenantID gidx.PrefixedID `json:"tenant_id,omitempty"`
+	// The ID for the owner for this annotation namespace.
+	OwnerID gidx.PrefixedID `json:"owner_id,omitempty"`
 	// Flag for if this namespace is private.
 	Private bool `json:"private,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -76,7 +76,7 @@ func (*AnnotationNamespace) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case annotationnamespace.FieldID, annotationnamespace.FieldTenantID:
+		case annotationnamespace.FieldID, annotationnamespace.FieldOwnerID:
 			values[i] = new(gidx.PrefixedID)
 		case annotationnamespace.FieldPrivate:
 			values[i] = new(sql.NullBool)
@@ -123,11 +123,11 @@ func (an *AnnotationNamespace) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				an.Name = value.String
 			}
-		case annotationnamespace.FieldTenantID:
+		case annotationnamespace.FieldOwnerID:
 			if value, ok := values[i].(*gidx.PrefixedID); !ok {
-				return fmt.Errorf("unexpected type %T for field tenant_id", values[i])
+				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
 			} else if value != nil {
-				an.TenantID = *value
+				an.OwnerID = *value
 			}
 		case annotationnamespace.FieldPrivate:
 			if value, ok := values[i].(*sql.NullBool); !ok {
@@ -185,8 +185,8 @@ func (an *AnnotationNamespace) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(an.Name)
 	builder.WriteString(", ")
-	builder.WriteString("tenant_id=")
-	builder.WriteString(fmt.Sprintf("%v", an.TenantID))
+	builder.WriteString("owner_id=")
+	builder.WriteString(fmt.Sprintf("%v", an.OwnerID))
 	builder.WriteString(", ")
 	builder.WriteString("private=")
 	builder.WriteString(fmt.Sprintf("%v", an.Private))

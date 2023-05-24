@@ -42,6 +42,7 @@ func (Status) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("ID"),
 				entgql.Skip(entgql.SkipWhereInput, entgql.SkipMutationUpdateInput),
+				entx.EventsHookAdditionalSubject(),
 			),
 		field.String("status_namespace_id").
 			GoType(gidx.PrefixedID("")).
@@ -49,6 +50,7 @@ func (Status) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("ID"),
 				entgql.Skip(entgql.SkipWhereInput, entgql.SkipMutationUpdateInput),
+				entx.EventsHookAdditionalSubject(),
 			),
 		field.String("source").
 			Immutable().
@@ -100,10 +102,12 @@ func (Status) Edges() []ent.Edge {
 func (Status) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
+		prefixIDDirective(StatusPrefix),
 		entgql.RelayConnection(),
 		entgql.Mutations(
 			entgql.MutationCreate().Description("Input information to create a status namespace."),
 			entgql.MutationUpdate().Description("Input information to update a status namespace."),
 		),
+		entx.EventsHookSubjectName("status"),
 	}
 }

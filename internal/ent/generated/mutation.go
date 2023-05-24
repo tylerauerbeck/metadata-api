@@ -735,7 +735,7 @@ type AnnotationNamespaceMutation struct {
 	created_at         *time.Time
 	updated_at         *time.Time
 	name               *string
-	tenant_id          *gidx.PrefixedID
+	owner_id           *gidx.PrefixedID
 	private            *bool
 	clearedFields      map[string]struct{}
 	annotations        map[gidx.PrefixedID]struct{}
@@ -958,40 +958,40 @@ func (m *AnnotationNamespaceMutation) ResetName() {
 	m.name = nil
 }
 
-// SetTenantID sets the "tenant_id" field.
-func (m *AnnotationNamespaceMutation) SetTenantID(gi gidx.PrefixedID) {
-	m.tenant_id = &gi
+// SetOwnerID sets the "owner_id" field.
+func (m *AnnotationNamespaceMutation) SetOwnerID(gi gidx.PrefixedID) {
+	m.owner_id = &gi
 }
 
-// TenantID returns the value of the "tenant_id" field in the mutation.
-func (m *AnnotationNamespaceMutation) TenantID() (r gidx.PrefixedID, exists bool) {
-	v := m.tenant_id
+// OwnerID returns the value of the "owner_id" field in the mutation.
+func (m *AnnotationNamespaceMutation) OwnerID() (r gidx.PrefixedID, exists bool) {
+	v := m.owner_id
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTenantID returns the old "tenant_id" field's value of the AnnotationNamespace entity.
+// OldOwnerID returns the old "owner_id" field's value of the AnnotationNamespace entity.
 // If the AnnotationNamespace object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AnnotationNamespaceMutation) OldTenantID(ctx context.Context) (v gidx.PrefixedID, err error) {
+func (m *AnnotationNamespaceMutation) OldOwnerID(ctx context.Context) (v gidx.PrefixedID, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTenantID is only allowed on UpdateOne operations")
+		return v, errors.New("OldOwnerID is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTenantID requires an ID field in the mutation")
+		return v, errors.New("OldOwnerID requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTenantID: %w", err)
+		return v, fmt.Errorf("querying old value for OldOwnerID: %w", err)
 	}
-	return oldValue.TenantID, nil
+	return oldValue.OwnerID, nil
 }
 
-// ResetTenantID resets all changes to the "tenant_id" field.
-func (m *AnnotationNamespaceMutation) ResetTenantID() {
-	m.tenant_id = nil
+// ResetOwnerID resets all changes to the "owner_id" field.
+func (m *AnnotationNamespaceMutation) ResetOwnerID() {
+	m.owner_id = nil
 }
 
 // SetPrivate sets the "private" field.
@@ -1128,8 +1128,8 @@ func (m *AnnotationNamespaceMutation) Fields() []string {
 	if m.name != nil {
 		fields = append(fields, annotationnamespace.FieldName)
 	}
-	if m.tenant_id != nil {
-		fields = append(fields, annotationnamespace.FieldTenantID)
+	if m.owner_id != nil {
+		fields = append(fields, annotationnamespace.FieldOwnerID)
 	}
 	if m.private != nil {
 		fields = append(fields, annotationnamespace.FieldPrivate)
@@ -1148,8 +1148,8 @@ func (m *AnnotationNamespaceMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case annotationnamespace.FieldName:
 		return m.Name()
-	case annotationnamespace.FieldTenantID:
-		return m.TenantID()
+	case annotationnamespace.FieldOwnerID:
+		return m.OwnerID()
 	case annotationnamespace.FieldPrivate:
 		return m.Private()
 	}
@@ -1167,8 +1167,8 @@ func (m *AnnotationNamespaceMutation) OldField(ctx context.Context, name string)
 		return m.OldUpdatedAt(ctx)
 	case annotationnamespace.FieldName:
 		return m.OldName(ctx)
-	case annotationnamespace.FieldTenantID:
-		return m.OldTenantID(ctx)
+	case annotationnamespace.FieldOwnerID:
+		return m.OldOwnerID(ctx)
 	case annotationnamespace.FieldPrivate:
 		return m.OldPrivate(ctx)
 	}
@@ -1201,12 +1201,12 @@ func (m *AnnotationNamespaceMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetName(v)
 		return nil
-	case annotationnamespace.FieldTenantID:
+	case annotationnamespace.FieldOwnerID:
 		v, ok := value.(gidx.PrefixedID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTenantID(v)
+		m.SetOwnerID(v)
 		return nil
 	case annotationnamespace.FieldPrivate:
 		v, ok := value.(bool)
@@ -1273,8 +1273,8 @@ func (m *AnnotationNamespaceMutation) ResetField(name string) error {
 	case annotationnamespace.FieldName:
 		m.ResetName()
 		return nil
-	case annotationnamespace.FieldTenantID:
-		m.ResetTenantID()
+	case annotationnamespace.FieldOwnerID:
+		m.ResetOwnerID()
 		return nil
 	case annotationnamespace.FieldPrivate:
 		m.ResetPrivate()

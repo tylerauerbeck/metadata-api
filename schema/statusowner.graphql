@@ -1,5 +1,5 @@
-extend type ResourceProvider @key(fields: "id") {
-  id: ID! @external
+type StatusOwner @key(fields: "id") @interfaceObject {
+  id: ID!
   statusNamespaces(
     """
     Returns the elements in the list that come after the specified cursor.
@@ -31,11 +31,15 @@ extend type ResourceProvider @key(fields: "id") {
     """
     where: StatusNamespaceWhereInput
   ): StatusNamespaceConnection! @goField(forceResolver: true)
+  """
+  Metadata about this node, including annotations and statuses.
+  """
+  metadata: Metadata @goField(forceResolver: true)
 }
 
 extend type StatusNamespace {
   """
-  The resource provider of the status namespace.
+  The owner of the status namespace.
   """
-  resourceProvider: ResourceProvider! @goField(forceResolver: true)
+  owner: StatusOwner! @goField(forceResolver: true)
 }

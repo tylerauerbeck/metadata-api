@@ -1,0 +1,20 @@
+query GetNodeMetadata(
+  $id: ID!
+) {
+  _entities(representations: { __typename: "MetadataNode", id: $id }) {
+    ... on MetadataNode {
+      metadata {
+        annotations {
+          edges {
+            node {
+              namespace {
+                name
+              }
+              data
+            }
+          }
+        }
+      }
+    }
+  }
+}

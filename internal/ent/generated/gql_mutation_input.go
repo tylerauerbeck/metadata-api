@@ -24,15 +24,15 @@ import (
 
 // CreateAnnotationNamespaceInput represents a mutation input for creating annotationnamespaces.
 type CreateAnnotationNamespaceInput struct {
-	Name     string
-	TenantID gidx.PrefixedID
-	Private  *bool
+	Name    string
+	OwnerID gidx.PrefixedID
+	Private *bool
 }
 
 // Mutate applies the CreateAnnotationNamespaceInput on the AnnotationNamespaceMutation builder.
 func (i *CreateAnnotationNamespaceInput) Mutate(m *AnnotationNamespaceMutation) {
 	m.SetName(i.Name)
-	m.SetTenantID(i.TenantID)
+	m.SetOwnerID(i.OwnerID)
 	if v := i.Private; v != nil {
 		m.SetPrivate(*v)
 	}

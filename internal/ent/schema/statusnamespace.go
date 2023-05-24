@@ -49,7 +49,8 @@ func (StatusNamespace) Fields() []ent.Field {
 				entgql.QueryField(),
 				entgql.Type("ID"),
 				entgql.Skip(entgql.SkipWhereInput, entgql.SkipMutationUpdateInput, entgql.SkipType),
-				entgql.OrderField("TENANT"),
+				entgql.OrderField("RESOURCEPROVIDER"),
+				entx.EventsHookAdditionalSubject(),
 			),
 		field.Bool("private").
 			Default(false).
@@ -85,11 +86,13 @@ func (StatusNamespace) Edges() []ent.Edge {
 func (StatusNamespace) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
+		prefixIDDirective(StatusNamespacePrefix),
 		schema.Comment("Representation of a status namespace. Status namespaces are used group status data that is provided by a resource provider."),
 		entgql.RelayConnection(),
 		entgql.Mutations(
 			entgql.MutationCreate().Description("Input information to create a status namespace."),
 			entgql.MutationUpdate().Description("Input information to update a status namespace."),
 		),
+		entx.EventsHookSubjectName("status-namespace"),
 	}
 }

@@ -15,6 +15,7 @@ import (
 	"go.infratographer.com/x/crdbx"
 	"go.infratographer.com/x/echojwtx"
 	"go.infratographer.com/x/echox"
+	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/loggingx"
 	"go.infratographer.com/x/otelx"
 	"go.infratographer.com/x/versionx"
@@ -55,6 +56,7 @@ func init() {
 
 	echox.MustViperFlags(viper.GetViper(), serveCmd.Flags(), defaultAPIListenAddr)
 	echojwtx.MustViperFlags(viper.GetViper(), serveCmd.Flags())
+	events.MustViperFlagsForPublisher(viper.GetViper(), serveCmd.Flags(), appName)
 
 	// only available as a CLI arg because it shouldn't be something that could accidentially end up in a config file or env var
 	serveCmd.Flags().BoolVar(&serveDevMode, "dev", false, "dev mode: enables playground, disables all auth checks, sets CORS to allow all, pretty logging, etc.")
@@ -70,6 +72,8 @@ func serve(ctx context.Context) error {
 		config.AppConfig.Server.WithMiddleware(middleware.CORS())
 		// reinit the logger
 		logger = loggingx.InitLogger(appName, config.AppConfig.Logging)
+		// this is a hack, echojwt needs to be updated to go into AppConfig
+		viper.Set("oidc.enabled", false)
 	}
 
 	err := otelx.InitTracer(config.AppConfig.Tracing, appName, logger)
@@ -86,7 +90,12 @@ func serve(ctx context.Context) error {
 
 	entDB := entsql.OpenDB(dialect.Postgres, db)
 
-	cOpts := []ent.Option{ent.Driver(entDB)}
+	publisher, err := events.NewPublisher(config.AppConfig.Events.Publisher)
+	if err != nil {
+		logger.Fatal("unable to initialize event publisher", zap.Error(err))
+	}
+
+	cOpts := []ent.Option{ent.Driver(entDB), ent.EventsPublisher(publisher)}
 
 	if config.AppConfig.Logging.Debug {
 		cOpts = append(cOpts,

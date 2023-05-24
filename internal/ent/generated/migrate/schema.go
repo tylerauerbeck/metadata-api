@@ -85,7 +85,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "tenant_id", Type: field.TypeString},
+		{Name: "owner_id", Type: field.TypeString},
 		{Name: "private", Type: field.TypeBool, Default: false},
 	}
 	// AnnotationNamespacesTable holds the schema information for the "annotation_namespaces" table.
@@ -105,12 +105,12 @@ var (
 				Columns: []*schema.Column{AnnotationNamespacesColumns[2]},
 			},
 			{
-				Name:    "annotationnamespace_tenant_id",
+				Name:    "annotationnamespace_owner_id",
 				Unique:  false,
 				Columns: []*schema.Column{AnnotationNamespacesColumns[4]},
 			},
 			{
-				Name:    "annotationnamespace_tenant_id_name",
+				Name:    "annotationnamespace_owner_id_name",
 				Unique:  true,
 				Columns: []*schema.Column{AnnotationNamespacesColumns[4], AnnotationNamespacesColumns[3]},
 			},

@@ -1,3 +1,5 @@
+directive @prefixedID(prefix: String!) on OBJECT
+
 extend type Mutation {
   """
   Set Annotation data for a node and annotation namespace to the given value.

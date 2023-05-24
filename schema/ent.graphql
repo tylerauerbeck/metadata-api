@@ -1,6 +1,6 @@
 directive @goField(forceResolver: Boolean, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
 directive @goModel(model: String, models: [String!]) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
-type Annotation implements Node @key(fields: "id") {
+type Annotation implements Node @key(fields: "id") @prefixedID(prefix: "metaano") {
   """ID for the annotation."""
   id: ID!
   createdAt: Time!
@@ -28,7 +28,7 @@ type AnnotationEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
-type AnnotationNamespace implements Node @key(fields: "id") {
+type AnnotationNamespace implements Node @key(fields: "id") @prefixedID(prefix: "metamns") {
   """The ID for the annotation namespace."""
   id: ID!
   createdAt: Time!
@@ -68,7 +68,7 @@ enum AnnotationNamespaceOrderField {
   CREATED_AT
   UPDATED_AT
   NAME
-  TENANT
+  OWNER
   PRIVATE
 }
 """
@@ -182,8 +182,8 @@ input AnnotationWhereInput {
 input CreateAnnotationNamespaceInput {
   """The name of the annotation namespace."""
   name: String!
-  """The ID for the tenant for this annotation namespace."""
-  tenantID: ID!
+  """The ID for the owner for this annotation namespace."""
+  ownerID: ID!
   """Flag for if this namespace is private."""
   private: Boolean
 }
@@ -211,7 +211,7 @@ https://relay.dev/graphql/connections.htm#sec-Cursor
 scalar Cursor
 """A valid JSON string."""
 scalar JSON
-type Metadata implements Node @key(fields: "id") @key(fields: "nodeID") {
+type Metadata implements Node @key(fields: "id") @key(fields: "nodeID") @prefixedID(prefix: "metadat") {
   """ID for the metadata."""
   id: ID!
   createdAt: Time!
@@ -357,7 +357,7 @@ type PageInfo @shareable {
   endCursor: Cursor
 }
 type Query
-type Status implements Node @key(fields: "id") {
+type Status implements Node @key(fields: "id") @prefixedID(prefix: "metasts") {
   id: ID!
   createdAt: Time!
   updatedAt: Time!
@@ -386,7 +386,7 @@ type StatusEdge {
   """A cursor for use in pagination."""
   cursor: Cursor!
 }
-type StatusNamespace implements Node @key(fields: "id") {
+type StatusNamespace implements Node @key(fields: "id") @prefixedID(prefix: "metasns") {
   """The ID for the status namespace."""
   id: ID!
   createdAt: Time!
@@ -425,7 +425,7 @@ enum StatusNamespaceOrderField {
   CREATED_AT
   UPDATED_AT
   NAME
-  TENANT
+  RESOURCEPROVIDER
   PRIVATE
 }
 """

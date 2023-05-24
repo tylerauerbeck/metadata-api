@@ -1,3 +1,10 @@
+extend type Query {
+  """
+  Get an annotation namespace by ID.
+  """
+  annotationNamespace(id: ID!): AnnotationNamespace!
+}
+
 extend type Mutation {
   """
   Create an annotation namespace.

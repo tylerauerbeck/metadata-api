@@ -1,9 +1,9 @@
 model:
-  package: graphclient
-  filename: ./models_gen.go
+  package: testclient
+  filename: ./internal/testclient/gen_models.go
 client:
-  package: graphclient
-  filename: ./client.go # Where should any generated client go?
+  package: testclient
+  filename: ./internal/testclient/gen_client.go # Where should any generated client go?
 models:
   ID:
     model:
@@ -15,15 +15,10 @@ models:
   JSON:
     model:
       - go.infratographer.com/x/entx.RawMessage
-# schema:
-#   - "schema/*.graphql"
-# The client is supposed to support building from files using the config above ^
-# Because of the federation support in our schema this fails and doesn't work.
-# Instead pointing at the local instance of our application as that does work.
-endpoint:
-  url: http://localhost:7905/query
+schema:
+  - "internal/testclient/schema/schema.graphql"
 query:
-  - "*.graphql"
+  - "internal/testclient/*.graphql"
 generate:
   client: true
-  clientInterfaceName: "GraphClient"
+  clientInterfaceName: "TestClient"

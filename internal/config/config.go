@@ -5,6 +5,7 @@ import (
 	"go.infratographer.com/x/crdbx"
 	"go.infratographer.com/x/echojwtx"
 	"go.infratographer.com/x/echox"
+	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/loggingx"
 	"go.infratographer.com/x/otelx"
 )
@@ -13,7 +14,13 @@ import (
 var AppConfig struct {
 	AuthConfig echojwtx.AuthConfig
 	CRDB       crdbx.Config
+	Events     EventsConfig
 	Logging    loggingx.Config
 	Server     echox.Config
 	Tracing    otelx.Config
+}
+
+// EventsConfig stores the configuration for a tenant-api event publisher
+type EventsConfig struct {
+	Publisher events.PublisherConfig
 }

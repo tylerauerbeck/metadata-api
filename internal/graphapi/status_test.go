@@ -12,7 +12,7 @@ import (
 
 	"go.infratographer.com/metadata-api/internal/ent/generated/metadata"
 	"go.infratographer.com/metadata-api/internal/ent/generated/status"
-	"go.infratographer.com/metadata-api/internal/graphclient"
+	"go.infratographer.com/metadata-api/internal/testclient"
 )
 
 func TestStatusUpdate(t *testing.T) {
@@ -65,7 +65,7 @@ func TestStatusUpdate(t *testing.T) {
 			jsonData, err := gofakeit.JSON(nil)
 			require.NoError(t, err)
 
-			resp, err := graphTestClient().StatusUpdate(ctx, graphclient.StatusUpdateInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID, Source: tt.Source, Data: json.RawMessage(jsonData)})
+			resp, err := graphTestClient().StatusUpdate(ctx, testclient.StatusUpdateInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID, Source: tt.Source, Data: json.RawMessage(jsonData)})
 
 			if tt.ErrorMsg != "" {
 				assert.Error(t, err)
@@ -114,7 +114,7 @@ func TestStatusDelete(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.TestName, func(t *testing.T) {
-			resp, err := graphTestClient().StatusDelete(ctx, graphclient.StatusDeleteInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID, Source: tt.Source})
+			resp, err := graphTestClient().StatusDelete(ctx, testclient.StatusDeleteInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID, Source: tt.Source})
 
 			if tt.ErrorMsg != "" {
 				assert.Error(t, err)
@@ -127,7 +127,7 @@ func TestStatusDelete(t *testing.T) {
 			assert.NotNil(t, resp.StatusDelete)
 			assert.NotNil(t, resp.StatusDelete.DeletedID)
 
-			count := EntClient.Status.Query().Where(status.Source(tt.Source), status.StatusNamespaceID(tt.NamespaceID), status.HasMetadataWith(metadata.NodeID(tt.NodeID))).CountX(ctx)
+			count := EntClient.Status.Query().Where(status.Source(tt.Source), status.HasMetadataWith(metadata.NodeID(tt.NodeID))).CountX(ctx)
 			assert.Equal(t, 0, count)
 		})
 	}

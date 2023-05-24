@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.infratographer.com/x/gidx"
 
-	"go.infratographer.com/metadata-api/internal/graphclient"
+	testclient "go.infratographer.com/metadata-api/internal/testclient"
 )
 
 func TestAnnotationNamespacesCreate(t *testing.T) {
@@ -18,20 +18,20 @@ func TestAnnotationNamespacesCreate(t *testing.T) {
 
 	testCases := []struct {
 		TestName                 string
-		AnnotationNamespaceInput graphclient.CreateAnnotationNamespaceInput
+		AnnotationNamespaceInput testclient.CreateAnnotationNamespaceInput
 		ErrorMsg                 string
 	}{
 		{
 			TestName:                 "Successful path",
-			AnnotationNamespaceInput: graphclient.CreateAnnotationNamespaceInput{Name: gofakeit.DomainName(), TenantID: gidx.MustNewID(tenantPrefix)},
+			AnnotationNamespaceInput: testclient.CreateAnnotationNamespaceInput{Name: gofakeit.DomainName(), OwnerID: gidx.MustNewID("testing")},
 		},
 		{
 			TestName:                 "Successful even when name is in use by another tenant",
-			AnnotationNamespaceInput: graphclient.CreateAnnotationNamespaceInput{Name: ns1.Name, TenantID: gidx.MustNewID(tenantPrefix)},
+			AnnotationNamespaceInput: testclient.CreateAnnotationNamespaceInput{Name: ns1.Name, OwnerID: gidx.MustNewID("tprefix")},
 		},
 		{
 			TestName:                 "Failed when name is in use by same tenant",
-			AnnotationNamespaceInput: graphclient.CreateAnnotationNamespaceInput{Name: ns1.Name, TenantID: ns1.TenantID},
+			AnnotationNamespaceInput: testclient.CreateAnnotationNamespaceInput{Name: ns1.Name, OwnerID: ns1.OwnerID},
 			ErrorMsg:                 "constraint failed", // TODO: This should have a better error message
 		},
 	}
@@ -110,7 +110,7 @@ func TestAnnotationNamespacesDelete(t *testing.T) {
 func TestAnnotationNamespacesUpdate(t *testing.T) {
 	ctx := context.Background()
 	ns := AnnotationNamespaceBuilder{}.MustNew(ctx)
-	ns2 := AnnotationNamespaceBuilder{TenantID: ns.TenantID}.MustNew(ctx)
+	ns2 := AnnotationNamespaceBuilder{OwnerID: ns.OwnerID}.MustNew(ctx)
 
 	testCases := []struct {
 		TestName string
@@ -138,7 +138,7 @@ func TestAnnotationNamespacesUpdate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.TestName, func(t *testing.T) {
-			resp, err := graphTestClient().AnnotationNamespaceUpdate(ctx, tt.ID, graphclient.UpdateAnnotationNamespaceInput{Name: &tt.NewName})
+			resp, err := graphTestClient().AnnotationNamespaceUpdate(ctx, tt.ID, testclient.UpdateAnnotationNamespaceInput{Name: &tt.NewName})
 
 			if tt.ErrorMsg != "" {
 				assert.Error(t, err)

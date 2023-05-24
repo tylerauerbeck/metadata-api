@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
+	"github.com/vektah/gqlparser/v2/ast"
 	"go.infratographer.com/x/entx"
 	"go.infratographer.com/x/gidx"
 )
@@ -43,6 +44,7 @@ func (Annotation) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("ID"),
 				entgql.Skip(entgql.SkipWhereInput, entgql.SkipMutationUpdateInput),
+				entx.EventsHookAdditionalSubject(),
 			),
 		field.String("annotation_namespace_id").
 			Comment("ID of the AnnotationNamespace of this annotation.").
@@ -51,6 +53,7 @@ func (Annotation) Fields() []ent.Field {
 			Annotations(
 				entgql.Type("ID"),
 				entgql.Skip(^entgql.SkipMutationUpdateInput),
+				entx.EventsHookAdditionalSubject(),
 			),
 		field.JSON("data", json.RawMessage{}).
 			Comment("JSON formatted data of this annotation.").
@@ -95,6 +98,23 @@ func (Annotation) Edges() []ent.Edge {
 func (Annotation) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
+		prefixIDDirective(AnnotationPrefix),
 		entgql.RelayConnection(),
+		entx.EventsHookSubjectName("annotation"),
 	}
+}
+
+func prefixIDDirective(prefix string) entgql.Annotation {
+	var args []*ast.Argument
+	if prefix != "" {
+		args = append(args, &ast.Argument{
+			Name: "prefix",
+			Value: &ast.Value{
+				Raw:  prefix,
+				Kind: ast.StringValue,
+			},
+		})
+	}
+
+	return entgql.Directives(entgql.NewDirective("prefixedID", args...))
 }

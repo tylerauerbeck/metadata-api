@@ -59,19 +59,23 @@ type AnnotationUpdateResponse struct {
 	Annotation *generated.Annotation `json:"annotation"`
 }
 
-type Metadataable struct {
-	ID       gidx.PrefixedID     `json:"id"`
-	Metadata *generated.Metadata `json:"metadata"`
+// MetadataNode provides an interface for any Node in the graph that can store metadata.
+type MetadataNode struct {
+	ID gidx.PrefixedID `json:"id"`
+	// Metadata about this node, including annotations and statuses.
+	Metadata *generated.Metadata `json:"metadata,omitempty"`
 }
 
-func (Metadataable) IsEntity() {}
+func (MetadataNode) IsEntity() {}
 
-type ResourceProvider struct {
-	ID               gidx.PrefixedID                      `json:"id"`
-	StatusNamespaces *generated.StatusNamespaceConnection `json:"statusNamespaces"`
+type ResourceOwner struct {
+	ID                   gidx.PrefixedID                          `json:"id"`
+	AnnotationNamespaces *generated.AnnotationNamespaceConnection `json:"annotationNamespaces"`
+	// Metadata about this node, including annotations and statuses.
+	Metadata *generated.Metadata `json:"metadata,omitempty"`
 }
 
-func (ResourceProvider) IsEntity() {}
+func (ResourceOwner) IsEntity() {}
 
 // Input information to delete an status.
 type StatusDeleteInput struct {
@@ -109,6 +113,15 @@ type StatusNamespaceUpdatePayload struct {
 	StatusNamespace *generated.StatusNamespace `json:"statusNamespace"`
 }
 
+type StatusOwner struct {
+	ID               gidx.PrefixedID                      `json:"id"`
+	StatusNamespaces *generated.StatusNamespaceConnection `json:"statusNamespaces"`
+	// Metadata about this node, including annotations and statuses.
+	Metadata *generated.Metadata `json:"metadata,omitempty"`
+}
+
+func (StatusOwner) IsEntity() {}
+
 // Input information to update an status.
 type StatusUpdateInput struct {
 	// The node ID for this status.
@@ -126,11 +139,3 @@ type StatusUpdateResponse struct {
 	// The set status.
 	Status *generated.Status `json:"status"`
 }
-
-type Tenant struct {
-	ID                   gidx.PrefixedID                          `json:"id"`
-	AnnotationNamespaces *generated.AnnotationNamespaceConnection `json:"annotationNamespaces"`
-	StatusNamespaces     *generated.StatusNamespaceConnection     `json:"statusNamespaces"`
-}
-
-func (Tenant) IsEntity() {}

@@ -23,7 +23,6 @@ import (
 	"log"
 
 	"go.infratographer.com/metadata-api/internal/ent/generated/migrate"
-	"go.infratographer.com/x/gidx"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -34,6 +33,8 @@ import (
 	"go.infratographer.com/metadata-api/internal/ent/generated/metadata"
 	"go.infratographer.com/metadata-api/internal/ent/generated/status"
 	"go.infratographer.com/metadata-api/internal/ent/generated/statusnamespace"
+	"go.infratographer.com/x/events"
+	"go.infratographer.com/x/gidx"
 )
 
 // Client is the client that holds all ent builders.
@@ -83,7 +84,8 @@ type (
 		// hooks to execute on mutations.
 		hooks *hooks
 		// interceptors to execute on queries.
-		inters *inters
+		inters          *inters
+		EventsPublisher *events.Publisher
 	}
 	// Option function to configure the client.
 	Option func(*config)
@@ -117,6 +119,13 @@ func Log(fn func(...any)) Option {
 func Driver(driver dialect.Driver) Option {
 	return func(c *config) {
 		c.driver = driver
+	}
+}
+
+// EventsPublisher configures the EventsPublisher.
+func EventsPublisher(v *events.Publisher) Option {
+	return func(c *config) {
+		c.EventsPublisher = v
 	}
 }
 

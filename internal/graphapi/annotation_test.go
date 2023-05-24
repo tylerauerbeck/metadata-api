@@ -12,7 +12,7 @@ import (
 
 	"go.infratographer.com/metadata-api/internal/ent/generated/annotation"
 	"go.infratographer.com/metadata-api/internal/ent/generated/metadata"
-	"go.infratographer.com/metadata-api/internal/graphclient"
+	"go.infratographer.com/metadata-api/internal/testclient"
 )
 
 func TestAnnotationUpdate(t *testing.T) {
@@ -54,7 +54,7 @@ func TestAnnotationUpdate(t *testing.T) {
 			jsonData, err := gofakeit.JSON(nil)
 			require.NoError(t, err)
 
-			resp, err := graphTestClient().AnnotationUpdate(ctx, graphclient.AnnotationUpdateInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID, Data: json.RawMessage(jsonData)})
+			resp, err := graphTestClient().AnnotationUpdate(ctx, testclient.AnnotationUpdateInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID, Data: json.RawMessage(jsonData)})
 
 			if tt.ErrorMsg != "" {
 				assert.Error(t, err)
@@ -98,7 +98,7 @@ func TestAnnotationDelete(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.TestName, func(t *testing.T) {
-			resp, err := graphTestClient().AnnotationDelete(ctx, graphclient.AnnotationDeleteInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID})
+			resp, err := graphTestClient().AnnotationDelete(ctx, testclient.AnnotationDeleteInput{NodeID: tt.NodeID, NamespaceID: tt.NamespaceID})
 
 			if tt.ErrorMsg != "" {
 				assert.Error(t, err)

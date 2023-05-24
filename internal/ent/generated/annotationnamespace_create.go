@@ -70,9 +70,9 @@ func (anc *AnnotationNamespaceCreate) SetName(s string) *AnnotationNamespaceCrea
 	return anc
 }
 
-// SetTenantID sets the "tenant_id" field.
-func (anc *AnnotationNamespaceCreate) SetTenantID(gi gidx.PrefixedID) *AnnotationNamespaceCreate {
-	anc.mutation.SetTenantID(gi)
+// SetOwnerID sets the "owner_id" field.
+func (anc *AnnotationNamespaceCreate) SetOwnerID(gi gidx.PrefixedID) *AnnotationNamespaceCreate {
+	anc.mutation.SetOwnerID(gi)
 	return anc
 }
 
@@ -188,8 +188,8 @@ func (anc *AnnotationNamespaceCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`generated: validator failed for field "AnnotationNamespace.name": %w`, err)}
 		}
 	}
-	if _, ok := anc.mutation.TenantID(); !ok {
-		return &ValidationError{Name: "tenant_id", err: errors.New(`generated: missing required field "AnnotationNamespace.tenant_id"`)}
+	if _, ok := anc.mutation.OwnerID(); !ok {
+		return &ValidationError{Name: "owner_id", err: errors.New(`generated: missing required field "AnnotationNamespace.owner_id"`)}
 	}
 	if _, ok := anc.mutation.Private(); !ok {
 		return &ValidationError{Name: "private", err: errors.New(`generated: missing required field "AnnotationNamespace.private"`)}
@@ -241,9 +241,9 @@ func (anc *AnnotationNamespaceCreate) createSpec() (*AnnotationNamespace, *sqlgr
 		_spec.SetField(annotationnamespace.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if value, ok := anc.mutation.TenantID(); ok {
-		_spec.SetField(annotationnamespace.FieldTenantID, field.TypeString, value)
-		_node.TenantID = value
+	if value, ok := anc.mutation.OwnerID(); ok {
+		_spec.SetField(annotationnamespace.FieldOwnerID, field.TypeString, value)
+		_node.OwnerID = value
 	}
 	if value, ok := anc.mutation.Private(); ok {
 		_spec.SetField(annotationnamespace.FieldPrivate, field.TypeBool, value)

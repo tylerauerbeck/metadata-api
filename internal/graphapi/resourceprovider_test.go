@@ -9,12 +9,12 @@ import (
 	"go.infratographer.com/x/gidx"
 
 	ent "go.infratographer.com/metadata-api/internal/ent/generated"
-	"go.infratographer.com/metadata-api/internal/graphclient"
+	testclient "go.infratographer.com/metadata-api/internal/testclient"
 )
 
 func TestResourceProviderStatusNamespaces(t *testing.T) {
 	ctx := context.Background()
-	rpID := gidx.MustNewID(resourceProviderPrefix)
+	rpID := gidx.MustNewID("testing")
 	stColors := StatusNamespaceBuilder{ResourceProviderID: rpID, Name: "instance.infratographer.com/colors"}.MustNew(ctx)
 	stPeople := StatusNamespaceBuilder{ResourceProviderID: rpID, Name: "instance.infratographer.com/people"}.MustNew(ctx)
 	stPlaces := StatusNamespaceBuilder{ResourceProviderID: rpID, Name: "instance.infratographer.com/places"}.MustNew(ctx)
@@ -24,50 +24,50 @@ func TestResourceProviderStatusNamespaces(t *testing.T) {
 
 	testCases := []struct {
 		TestName           string
-		OrderBy            *graphclient.StatusNamespaceOrder
+		OrderBy            *testclient.StatusNamespaceOrder
 		ResourceProviderID gidx.PrefixedID
 		ResponseOrder      []*ent.StatusNamespace
 		errorMsg           string
 	}{
 		{
 			TestName:           "Ordered By NAME ASC",
-			OrderBy:            &graphclient.StatusNamespaceOrder{Field: "NAME", Direction: "ASC"},
+			OrderBy:            &testclient.StatusNamespaceOrder{Field: "NAME", Direction: "ASC"},
 			ResourceProviderID: rpID,
 			ResponseOrder:      []*ent.StatusNamespace{stColors, stPeople, stPlaces},
 		},
 		{
 			TestName:           "Ordered By NAME DESC",
-			OrderBy:            &graphclient.StatusNamespaceOrder{Field: "NAME", Direction: "DESC"},
+			OrderBy:            &testclient.StatusNamespaceOrder{Field: "NAME", Direction: "DESC"},
 			ResourceProviderID: rpID,
 			ResponseOrder:      []*ent.StatusNamespace{stPlaces, stPeople, stColors},
 		},
 		{
 			TestName:           "Ordered By CREATED_AT ASC",
-			OrderBy:            &graphclient.StatusNamespaceOrder{Field: "CREATED_AT", Direction: "ASC"},
+			OrderBy:            &testclient.StatusNamespaceOrder{Field: "CREATED_AT", Direction: "ASC"},
 			ResourceProviderID: rpID,
 			ResponseOrder:      []*ent.StatusNamespace{stColors, stPeople, stPlaces},
 		},
 		{
 			TestName:           "Ordered By CREATED_AT DESC",
-			OrderBy:            &graphclient.StatusNamespaceOrder{Field: "CREATED_AT", Direction: "DESC"},
+			OrderBy:            &testclient.StatusNamespaceOrder{Field: "CREATED_AT", Direction: "DESC"},
 			ResourceProviderID: rpID,
 			ResponseOrder:      []*ent.StatusNamespace{stPlaces, stPeople, stColors},
 		},
 		{
 			TestName:           "Ordered By UPDATED_AT ASC",
-			OrderBy:            &graphclient.StatusNamespaceOrder{Field: "UPDATED_AT", Direction: "ASC"},
+			OrderBy:            &testclient.StatusNamespaceOrder{Field: "UPDATED_AT", Direction: "ASC"},
 			ResourceProviderID: rpID,
 			ResponseOrder:      []*ent.StatusNamespace{stPeople, stPlaces, stColors},
 		},
 		{
 			TestName:           "Ordered By UPDATED_AT DESC",
-			OrderBy:            &graphclient.StatusNamespaceOrder{Field: "UPDATED_AT", Direction: "DESC"},
+			OrderBy:            &testclient.StatusNamespaceOrder{Field: "UPDATED_AT", Direction: "DESC"},
 			ResourceProviderID: rpID,
 			ResponseOrder:      []*ent.StatusNamespace{stColors, stPlaces, stPeople},
 		},
 		{
 			TestName:           "No Annotation Namespaces for Tenant",
-			ResourceProviderID: gidx.MustNewID(tenantPrefix),
+			ResourceProviderID: gidx.MustNewID("testing"),
 			ResponseOrder:      []*ent.StatusNamespace{},
 		},
 	}

@@ -37,6 +37,7 @@ func (Metadata) Fields() []ent.Field {
 			Unique().
 			Immutable().
 			Annotations(
+				entx.EventsHookAdditionalSubject(),
 				entgql.Type("ID"),
 				entgql.Skip(entgql.SkipWhereInput, entgql.SkipMutationUpdateInput),
 			),
@@ -72,6 +73,8 @@ func (Metadata) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
 		entx.GraphKeyDirective("nodeID"),
+		entx.EventsHookSubjectName("metadata"),
+		prefixIDDirective(MetadataPrefix),
 		entgql.RelayConnection(),
 	}
 }

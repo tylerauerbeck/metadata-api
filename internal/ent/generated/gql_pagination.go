@@ -690,17 +690,17 @@ var (
 			}
 		},
 	}
-	// AnnotationNamespaceOrderFieldTenantID orders AnnotationNamespace by tenant_id.
-	AnnotationNamespaceOrderFieldTenantID = &AnnotationNamespaceOrderField{
+	// AnnotationNamespaceOrderFieldOwnerID orders AnnotationNamespace by owner_id.
+	AnnotationNamespaceOrderFieldOwnerID = &AnnotationNamespaceOrderField{
 		Value: func(an *AnnotationNamespace) (ent.Value, error) {
-			return an.TenantID, nil
+			return an.OwnerID, nil
 		},
-		column: annotationnamespace.FieldTenantID,
-		toTerm: annotationnamespace.ByTenantID,
+		column: annotationnamespace.FieldOwnerID,
+		toTerm: annotationnamespace.ByOwnerID,
 		toCursor: func(an *AnnotationNamespace) Cursor {
 			return Cursor{
 				ID:    an.ID,
-				Value: an.TenantID,
+				Value: an.OwnerID,
 			}
 		},
 	}
@@ -732,8 +732,8 @@ func (f AnnotationNamespaceOrderField) String() string {
 		str = "UPDATED_AT"
 	case AnnotationNamespaceOrderFieldName.column:
 		str = "NAME"
-	case AnnotationNamespaceOrderFieldTenantID.column:
-		str = "TENANT"
+	case AnnotationNamespaceOrderFieldOwnerID.column:
+		str = "OWNER"
 	case AnnotationNamespaceOrderFieldPrivate.column:
 		str = "PRIVATE"
 	}
@@ -760,8 +760,8 @@ func (f *AnnotationNamespaceOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *AnnotationNamespaceOrderFieldUpdatedAt
 	case "NAME":
 		*f = *AnnotationNamespaceOrderFieldName
-	case "TENANT":
-		*f = *AnnotationNamespaceOrderFieldTenantID
+	case "OWNER":
+		*f = *AnnotationNamespaceOrderFieldOwnerID
 	case "PRIVATE":
 		*f = *AnnotationNamespaceOrderFieldPrivate
 	default:
@@ -1738,7 +1738,7 @@ func (f StatusNamespaceOrderField) String() string {
 	case StatusNamespaceOrderFieldName.column:
 		str = "NAME"
 	case StatusNamespaceOrderFieldResourceProviderID.column:
-		str = "TENANT"
+		str = "RESOURCEPROVIDER"
 	case StatusNamespaceOrderFieldPrivate.column:
 		str = "PRIVATE"
 	}
@@ -1765,7 +1765,7 @@ func (f *StatusNamespaceOrderField) UnmarshalGQL(v interface{}) error {
 		*f = *StatusNamespaceOrderFieldUpdatedAt
 	case "NAME":
 		*f = *StatusNamespaceOrderFieldName
-	case "TENANT":
+	case "RESOURCEPROVIDER":
 		*f = *StatusNamespaceOrderFieldResourceProviderID
 	case "PRIVATE":
 		*f = *StatusNamespaceOrderFieldPrivate

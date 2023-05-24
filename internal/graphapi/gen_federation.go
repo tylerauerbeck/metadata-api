@@ -152,41 +152,41 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 				list[idx[i]] = entity
 				return nil
 			}
-		case "Metadataable":
-			resolverName, err := entityResolverNameForMetadataable(ctx, rep)
+		case "MetadataNode":
+			resolverName, err := entityResolverNameForMetadataNode(ctx, rep)
 			if err != nil {
-				return fmt.Errorf(`finding resolver for Entity "Metadataable": %w`, err)
+				return fmt.Errorf(`finding resolver for Entity "MetadataNode": %w`, err)
 			}
 			switch resolverName {
 
-			case "findMetadataableByID":
+			case "findMetadataNodeByID":
 				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
 				if err != nil {
-					return fmt.Errorf(`unmarshalling param 0 for findMetadataableByID(): %w`, err)
+					return fmt.Errorf(`unmarshalling param 0 for findMetadataNodeByID(): %w`, err)
 				}
-				entity, err := ec.resolvers.Entity().FindMetadataableByID(ctx, id0)
+				entity, err := ec.resolvers.Entity().FindMetadataNodeByID(ctx, id0)
 				if err != nil {
-					return fmt.Errorf(`resolving Entity "Metadataable": %w`, err)
+					return fmt.Errorf(`resolving Entity "MetadataNode": %w`, err)
 				}
 
 				list[idx[i]] = entity
 				return nil
 			}
-		case "ResourceProvider":
-			resolverName, err := entityResolverNameForResourceProvider(ctx, rep)
+		case "ResourceOwner":
+			resolverName, err := entityResolverNameForResourceOwner(ctx, rep)
 			if err != nil {
-				return fmt.Errorf(`finding resolver for Entity "ResourceProvider": %w`, err)
+				return fmt.Errorf(`finding resolver for Entity "ResourceOwner": %w`, err)
 			}
 			switch resolverName {
 
-			case "findResourceProviderByID":
+			case "findResourceOwnerByID":
 				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
 				if err != nil {
-					return fmt.Errorf(`unmarshalling param 0 for findResourceProviderByID(): %w`, err)
+					return fmt.Errorf(`unmarshalling param 0 for findResourceOwnerByID(): %w`, err)
 				}
-				entity, err := ec.resolvers.Entity().FindResourceProviderByID(ctx, id0)
+				entity, err := ec.resolvers.Entity().FindResourceOwnerByID(ctx, id0)
 				if err != nil {
-					return fmt.Errorf(`resolving Entity "ResourceProvider": %w`, err)
+					return fmt.Errorf(`resolving Entity "ResourceOwner": %w`, err)
 				}
 
 				list[idx[i]] = entity
@@ -232,21 +232,21 @@ func (ec *executionContext) __resolve_entities(ctx context.Context, representati
 				list[idx[i]] = entity
 				return nil
 			}
-		case "Tenant":
-			resolverName, err := entityResolverNameForTenant(ctx, rep)
+		case "StatusOwner":
+			resolverName, err := entityResolverNameForStatusOwner(ctx, rep)
 			if err != nil {
-				return fmt.Errorf(`finding resolver for Entity "Tenant": %w`, err)
+				return fmt.Errorf(`finding resolver for Entity "StatusOwner": %w`, err)
 			}
 			switch resolverName {
 
-			case "findTenantByID":
+			case "findStatusOwnerByID":
 				id0, err := ec.unmarshalNID2goᚗinfratographerᚗcomᚋxᚋgidxᚐPrefixedID(ctx, rep["id"])
 				if err != nil {
-					return fmt.Errorf(`unmarshalling param 0 for findTenantByID(): %w`, err)
+					return fmt.Errorf(`unmarshalling param 0 for findStatusOwnerByID(): %w`, err)
 				}
-				entity, err := ec.resolvers.Entity().FindTenantByID(ctx, id0)
+				entity, err := ec.resolvers.Entity().FindStatusOwnerByID(ctx, id0)
 				if err != nil {
-					return fmt.Errorf(`resolving Entity "Tenant": %w`, err)
+					return fmt.Errorf(`resolving Entity "StatusOwner": %w`, err)
 				}
 
 				list[idx[i]] = entity
@@ -385,7 +385,7 @@ func entityResolverNameForMetadata(ctx context.Context, rep map[string]interface
 	return "", fmt.Errorf("%w for Metadata", ErrTypeNotFound)
 }
 
-func entityResolverNameForMetadataable(ctx context.Context, rep map[string]interface{}) (string, error) {
+func entityResolverNameForMetadataNode(ctx context.Context, rep map[string]interface{}) (string, error) {
 	for {
 		var (
 			m   map[string]interface{}
@@ -397,12 +397,12 @@ func entityResolverNameForMetadataable(ctx context.Context, rep map[string]inter
 		if _, ok = m["id"]; !ok {
 			break
 		}
-		return "findMetadataableByID", nil
+		return "findMetadataNodeByID", nil
 	}
-	return "", fmt.Errorf("%w for Metadataable", ErrTypeNotFound)
+	return "", fmt.Errorf("%w for MetadataNode", ErrTypeNotFound)
 }
 
-func entityResolverNameForResourceProvider(ctx context.Context, rep map[string]interface{}) (string, error) {
+func entityResolverNameForResourceOwner(ctx context.Context, rep map[string]interface{}) (string, error) {
 	for {
 		var (
 			m   map[string]interface{}
@@ -414,9 +414,9 @@ func entityResolverNameForResourceProvider(ctx context.Context, rep map[string]i
 		if _, ok = m["id"]; !ok {
 			break
 		}
-		return "findResourceProviderByID", nil
+		return "findResourceOwnerByID", nil
 	}
-	return "", fmt.Errorf("%w for ResourceProvider", ErrTypeNotFound)
+	return "", fmt.Errorf("%w for ResourceOwner", ErrTypeNotFound)
 }
 
 func entityResolverNameForStatus(ctx context.Context, rep map[string]interface{}) (string, error) {
@@ -453,7 +453,7 @@ func entityResolverNameForStatusNamespace(ctx context.Context, rep map[string]in
 	return "", fmt.Errorf("%w for StatusNamespace", ErrTypeNotFound)
 }
 
-func entityResolverNameForTenant(ctx context.Context, rep map[string]interface{}) (string, error) {
+func entityResolverNameForStatusOwner(ctx context.Context, rep map[string]interface{}) (string, error) {
 	for {
 		var (
 			m   map[string]interface{}
@@ -465,7 +465,7 @@ func entityResolverNameForTenant(ctx context.Context, rep map[string]interface{}
 		if _, ok = m["id"]; !ok {
 			break
 		}
-		return "findTenantByID", nil
+		return "findStatusOwnerByID", nil
 	}
-	return "", fmt.Errorf("%w for Tenant", ErrTypeNotFound)
+	return "", fmt.Errorf("%w for StatusOwner", ErrTypeNotFound)
 }

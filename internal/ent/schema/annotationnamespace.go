@@ -41,15 +41,16 @@ func (AnnotationNamespace) Fields() []ent.Field {
 			Annotations(
 				entgql.OrderField("NAME"),
 			),
-		field.String("tenant_id").
+		field.String("owner_id").
 			GoType(gidx.PrefixedID("")).
 			Immutable().
-			Comment("The ID for the tenant for this annotation namespace.").
+			Comment("The ID for the owner for this annotation namespace.").
 			Annotations(
 				entgql.QueryField(),
 				entgql.Type("ID"),
 				entgql.Skip(entgql.SkipWhereInput, entgql.SkipMutationUpdateInput, entgql.SkipType),
-				entgql.OrderField("TENANT"),
+				entgql.OrderField("OWNER"),
+				entx.EventsHookAdditionalSubject(),
 			),
 		field.Bool("private").
 			Default(false).
@@ -65,8 +66,8 @@ func (AnnotationNamespace) Fields() []ent.Field {
 // Indexes of the Provider
 func (AnnotationNamespace) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("tenant_id"),
-		index.Fields("tenant_id", "name").Unique(),
+		index.Fields("owner_id"),
+		index.Fields("owner_id", "name").Unique(),
 	}
 }
 
@@ -85,11 +86,13 @@ func (AnnotationNamespace) Edges() []ent.Edge {
 func (AnnotationNamespace) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entx.GraphKeyDirective("id"),
+		prefixIDDirective(AnnotationNamespacePrefix),
 		schema.Comment("Representation of an annotation namespace. Annotation namespaces are used group annotation data that is provided by the same source and uses the same schema."),
 		entgql.RelayConnection(),
 		entgql.Mutations(
 			entgql.MutationCreate().Description("Input information to create an annotation namespace."),
 			entgql.MutationUpdate().Description("Input information to update an annotation namespace."),
 		),
+		entx.EventsHookSubjectName("annotation-namespace"),
 	}
 }

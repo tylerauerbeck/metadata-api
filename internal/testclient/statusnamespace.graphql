@@ -2,8 +2,8 @@ query GetResourceProviderStatusNamespaces(
   $id: ID!
   $orderBy: StatusNamespaceOrder
 ) {
-  _entities(representations: { __typename: "ResourceProvider", id: $id }) {
-    ... on ResourceProvider {
+  _entities(representations: { __typename: "StatusOwner", id: $id }) {
+    ... on StatusOwner {
       statusNamespaces(orderBy: $orderBy) {
         edges {
           node {
@@ -27,7 +27,7 @@ mutation StatusNamespaceCreate($input: CreateStatusNamespaceInput!) {
       private
       createdAt
       updatedAt
-      resourceProvider {
+      owner {
         id
       }
     }
@@ -42,7 +42,7 @@ mutation StatusNamespaceUpdate($id: ID!, $input: UpdateStatusNamespaceInput!) {
       private
       createdAt
       updatedAt
-      resourceProvider {
+      owner {
         id
       }
     }

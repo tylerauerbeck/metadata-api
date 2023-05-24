@@ -3,25 +3,21 @@ extend schema
     url: "https://specs.apollo.dev/federation/v2.3"
     import: ["@key", "@interfaceObject", "@external", "@shareable"]
   )
-directive @interfaceObject on OBJECT
 
-type Metadataable @key(fields: "id") @interfaceObject {
+"""
+MetadataNode provides an interface for any Node in the graph that can store metadata.
+"""
+type MetadataNode @key(fields: "id") @interfaceObject {
   id: ID!
-  metadata: Metadata!
-}
-
-extend type Query {
   """
-  Lookup a metadata for a node by node ID.
+  Metadata about this node, including annotations and statuses.
   """
-  metadata(
-    """
-    The ID of the node to get metadata for.
-    """
-    nodeID: ID!
-  ): Metadata
+  metadata: Metadata @goField(forceResolver: true)
 }
 
 extend type Metadata {
-  node: Metadataable!
+  """
+  Node that this metadata is assigned to.
+  """
+  node: MetadataNode!
 }

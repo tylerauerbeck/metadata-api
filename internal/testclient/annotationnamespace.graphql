@@ -1,9 +1,9 @@
-query GetTenantAnnotationNamespaces(
+query GetResourceOwnerAnnotationNamespaces(
   $id: ID!
   $orderBy: AnnotationNamespaceOrder
 ) {
-  _entities(representations: { __typename: "Tenant", id: $id }) {
-    ... on Tenant {
+  _entities(representations: { __typename: "ResourceOwner", id: $id }) {
+    ... on ResourceOwner {
       annotationNamespaces(orderBy: $orderBy) {
         edges {
           node {
@@ -27,7 +27,7 @@ mutation AnnotationNamespaceCreate($input: CreateAnnotationNamespaceInput!) {
       private
       createdAt
       updatedAt
-      tenant {
+      owner {
         id
       }
     }
@@ -45,7 +45,7 @@ mutation AnnotationNamespaceUpdate(
       private
       createdAt
       updatedAt
-      tenant {
+      owner {
         id
       }
     }

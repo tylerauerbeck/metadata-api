@@ -22,7 +22,7 @@ import (
 	"go.infratographer.com/metadata-api/db"
 	ent "go.infratographer.com/metadata-api/internal/ent/generated"
 	"go.infratographer.com/metadata-api/internal/graphapi"
-	"go.infratographer.com/metadata-api/internal/graphclient"
+	"go.infratographer.com/metadata-api/internal/testclient"
 	"go.infratographer.com/metadata-api/x/testcontainersx"
 )
 
@@ -123,8 +123,8 @@ func errPanic(msg string, err error) {
 	}
 }
 
-func graphTestClient() graphclient.GraphClient {
-	return graphclient.NewClient(&http.Client{Transport: localRoundTripper{handler: handler.NewDefaultServer(
+func graphTestClient() testclient.TestClient {
+	return testclient.NewClient(&http.Client{Transport: localRoundTripper{handler: handler.NewDefaultServer(
 		graphapi.NewExecutableSchema(
 			graphapi.Config{Resolvers: graphapi.NewResolver(EntClient, zap.NewNop().Sugar())},
 		))}}, "graph")
