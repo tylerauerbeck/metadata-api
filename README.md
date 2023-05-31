@@ -72,4 +72,4 @@ To contact the maintainers, please open a [GithHub Issue](https://github.com/inf
 
 ## License
 
-[Apache 2.0](LICENSE)
+[Elastic License 2.0](LICENSE)
