@@ -1,0 +1,35 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "common.names.fullname" . }}-config
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+data:
+  METADATAAPI_EVENTS_PUBLISHER_PREFIX: "{{ .Values.api.events.topicPrefix }}"
+  METADATAAPI_EVENTS_PUBLISHER_URL: "{{ .Values.api.events.connectionURL }}"
+  METADATAAPI_OIDC_ENABLED: "{{ .Values.api.oidc.enabled }}"
+  METADATAAPI_OIDC_AUDIENCE: "{{ .Values.api.oidc.audience }}"
+  METADATAAPI_OIDC_ISSUER: "{{ .Values.api.oidc.issuer }}"
+  METADATAAPI_OIDC_JWKS_REMOTE_TIMEOUT: "{{ .Values.api.oidc.jwksRemoteTimeout }}"
+  METADATAAPI_SERVER_LISTEN: ":{{ .Values.api.listenPort }}"
+  METADATAAPI_SERVER_SHUTDOWN_GRACE_PERIOD: "{{ .Values.api.shutdownGracePeriod }}"
+  METADATAAPI_PERMISSIONS_URL: "{{ .Values.api.permissions.url }}"
+{{- if .Values.api.tracing.enabled }}
+  METADATAAPI_TRACING_ENABLED: "{{ .Values.api.tracing.enabled }}"
+  METADATAAPI_TRACING_PROVIDER: "{{ .Values.api.tracing.provider }}"
+  METADATAAPI_TRACING_ENVIRONMENT: "{{ .Values.api.tracing.environment }}"
+{{- if eq .Values.api.tracing.provider "jaeger" }}
+  METADATAAPI_TRACING_JAEGER_ENDPOINT: "{{ .Values.api.tracing.jaeger.endpoint }}"
+  METADATAAPI_TRACING_JAEGER_USER: "{{ .Values.api.tracing.jaeger.user }}"
+  METADATA_TRACING_JAEGER_PASSWORD: "{{ .Values.api.tracing.jaeger.password }}"
+{{- end }}
+{{- if eq .Values.api.tracing.provider "otlpgrpc" }}
+  METADATAAPI_TRACING_OTLP_ENDPOINT: "{{ .Values.api.tracing.otlp.endpoint }}"
+  METADATAAPI_TRACING_OTLP_INSECURE: "{{ .Values.api.tracing.otlp.insecure }}"
+  METADATA_TRACING_OTLP_CERTIFICATE: "{{ .Values.api.tracing.otlp.certificate }}"
+{{- end }}
+{{- end }}
+{{- with .Values.api.trustedProxies }}
+  METADATAAPI_SERVER_TRUSTED_PROXIES: "{{ join " " . }}"
+{{- end }}

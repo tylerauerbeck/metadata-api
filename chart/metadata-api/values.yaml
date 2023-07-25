@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/infratographer/metadata-api
   pullPolicy: IfNotPresent
-  tag: "v0.0.13"
+  tag: "main-latest"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -31,24 +31,25 @@ ingress:
 
 api:
   replicas: 1
-  listenPort: 7608
+  listenPort: 7610
   extraLabels: {}
   extraAnnotations: {}
-  extraEnvVars: {}
+  extraEnvVars []:
+  #- value: "postgresql://user@my-db-server:26257/metadata_api
+  #  name: METADATAAPI_CRDB_URI
   resources: {}
   podSecurityContext: {}
   securityContext: {}
   events:
-    connectionURL: "my-events-cluster.example.com:4222"
+    connectionURL: "nats://my-events-cluster.example.com:4222"
     auth:
-      secretName: "events-creds"
+      secretName: ""
       credsPath: "/nats/creds"
-    subjects: "events"
-    queue: "metadata"
+    topicPrefix: "com.infratographer"
   db:
-    uriSecret: metadata-api-db-uri
-    certSecret: metadata-api-db-ca
-  migrateOnInit: true
+    uriSecret: "" 
+    certSecret: ""
+  migrateOnInit: true 
 
   oidc:
     enabled: false
@@ -56,6 +57,29 @@ api:
     issuer: ""
     jwks:
       remoteTimeout: 1m
+
+  permissions:
+    url: ""
+
+  tracing:
+    # enabled is true if OpenTelemetry tracing should be enabled for permissions-api
+    enabled: false
+    # environment is the OpenTelemetry tracing environment to use
+    environment: ""
+    # provider is the OpenTelemetry tracing provider to use
+    provider: stdout
+    jaeger:
+      # endpoint is the Jaeger collector to send traces to
+      endpoint: ""
+      # user is the user to use when authenticating against the Jaeger deployment
+      user: ""
+      # password is the password to use when authenticating against the Jaeger deployment
+      password: ""
+    otlp:
+      # endpoint is the OpenTelemetry Protocol (OTLP) collector endpoint to send traces to
+      endpoint: ""
+      # insecure is true if TLS should not be required when sending traces
+      insecure: false
 
   shutdownGracePeriod: 5s
   trustedProxies: []

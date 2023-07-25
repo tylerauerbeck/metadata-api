@@ -40,9 +40,18 @@ spec:
       {{- if .Values.api.migrateOnInit  }}
       initContainers:
         - name: {{ .Chart.Name }}-migrate
+          {{- if .Values.api.extraEnvVars }}
+          env:
+          {{- range .Values.api.extraEnvVars }}
+            - name: {{ .name }}
+              value: {{ .value }}
+          {{- end }}
+          {{- end }}
           envFrom:
+          {{- if .Values.api.db.uriSecret }}
             - secretRef:
                 name: {{ .Values.api.db.uriSecret }}
+          {{- end }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args:
@@ -59,45 +68,20 @@ spec:
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
+          {{- if .Values.api.extraEnvVars }}
           env:
-            - name: METADATAAPI_SERVER_LISTEN
-              value: ":{{ .Values.api.listenPort }}"
-            - name: METADATAAPI_SERVER_SHUTDOWN_GRACE_PERIOD
-              value: "{{ .Values.api.shutdownGracePeriod }}"
-          {{- with .Values.api.trustedProxies }}
-            - name: METADATAAPI_SERVER_TRUSTED_PROXIES
-              value: "{{ join " " . }}"
+          {{- range .Values.api.extraEnvVars }}
+            - name: {{ .name }}
+              value: {{ .value }}
           {{- end }}
-            - name: METADATAAPI_NATS_URL
-              value: "{{ .Values.api.events.connectionURL }}"
-            - name: METADATAAPI_NATS_STREAM_NAME
-              value: "{{ .Values.api.events.queue | default "metadataapi" }}"
-            - name: METADATAAPI_NATS_SUBJECT_PREFIX
-              value: "{{ .Values.api.events.subjects }}"
-          {{- if .Values.api.events.auth.secretName }}
-            - name: METADATAAPI_NATS_CREDS_FILE
-              value: "{{ .Values.api.events.credsPath }}"
-          {{- end }}
-          {- if .Values.api.oidc.enabled }}
-          {{- with .Values.api.oidc.audience }}
-            - name: METADATAAPI_OIDC_AUDIENCE
-              value: "{{ . }}"
-          {{- end }}
-          {{- with .Values.api.oidc.issuer }}
-            - name: METADATAAPI_OIDC_ISSUER
-              value: "{{ . }}"
-          {{- end }}
-          {{- with .Values.api.oidc.jwks.remoteTimeout }}
-            - name: METADATAAPI_OIDC_JWKS_REMOTE_TIMEOUT
-              value: "{{ . }}"
-          {{- end }}
-          {{- else }}
-            - name: METADATAAPI_OIDC_ENABLED
-              value: "false"
-          {{- end }}
+          {{- end }} 
           envFrom:
+            - configMapRef:
+                name: {{ include "common.names.fullname" . }}-config
+          {{- if .Values.api.db.uriSecret }}
             - secretRef:
                 name: {{ .Values.api.db.uriSecret }}
+          {{- end }}
           {{- with .Values.api.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
